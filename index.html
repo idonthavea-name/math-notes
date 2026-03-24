@@ -1,0 +1,2184 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch12 Sturm-Liouville 問題與特徵函數展開</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']] },
+  svg: { fontCache: 'global', scale: 0.92 },
+  startup: {
+    ready: () => {
+      MathJax.startup.defaultReady();
+    }
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+<style>
+:root {
+  --bg: #0e0f13;
+  --bg-card: #16171d;
+  --bg-card-hover: #1c1d25;
+  --bg-sidebar: #111218;
+  --text: #d4d4dc;
+  --text-dim: #7a7b8a;
+  --text-bright: #eeeef3;
+  --accent: #6eb8f7;
+  --accent-dim: #3a6ea5;
+  --accent-glow: rgba(110,184,247,0.08);
+  --green: #7ec9a0;
+  --orange: #e8a86e;
+  --pink: #d98ec4;
+  --red: #e07070;
+  --border: #26272f;
+  --border-active: #3a3b48;
+  --radius: 10px;
+  --font-serif: 'Noto Serif TC', serif;
+  --font-sans: 'Noto Sans TC', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; overflow-x: hidden; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 2.2;
+  font-size: 15px;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ─── Sidebar ─── */
+#sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  padding: 28px 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+  transition: transform 0.3s;
+}
+
+#sidebar::-webkit-scrollbar { width: 3px; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border-active); border-radius: 3px; }
+
+#sidebar .logo {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 0 24px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+
+#sidebar nav a {
+  display: block;
+  padding: 7px 24px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 400;
+  border-left: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+#sidebar nav a:hover {
+  color: var(--text);
+  background: var(--accent-glow);
+}
+
+#sidebar nav a.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--accent-glow);
+  font-weight: 500;
+}
+
+#sidebar nav a.sub {
+  padding-left: 40px;
+  font-size: 12.5px;
+}
+
+#sidebar nav a.sub2 {
+  padding-left: 54px;
+  font-size: 12px;
+}
+
+/* ─── Toggle btn ─── */
+#sidebar-toggle {
+  display: none;
+  position: fixed;
+  top: 14px; left: 14px;
+  z-index: 200;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 38px; height: 38px;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* ─── Main content ─── */
+#main {
+  margin-left: 280px;
+  flex: 1;
+  max-width: 860px;
+  padding: 48px 52px 120px;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* ─── Search ─── */
+#search-bar {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  padding: 12px 0 16px;
+  z-index: 50;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 36px;
+}
+
+#search-bar input {
+  width: 100%;
+  padding: 10px 16px 10px 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#search-bar input:focus { border-color: var(--accent-dim); }
+
+#search-bar .icon {
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+#search-results {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* ─── Headers ─── */
+h1 {
+  font-family: var(--font-serif);
+  font-size: 30px;
+  font-weight: 900;
+  color: var(--text-bright);
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+  line-height: 1.3;
+}
+
+h1 .ch-num {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+h2 {
+  font-family: var(--font-serif);
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin: 52px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+h2 .sec-num { color: var(--accent); }
+
+h3 {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-bright);
+  margin: 36px 0 10px;
+}
+
+.subtitle {
+  color: var(--text-dim);
+  font-size: 14px;
+  margin-bottom: 40px;
+}
+
+/* ─── Cards ─── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 26px;
+  margin: 20px 0;
+  transition: border-color 0.2s;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.card:hover { border-color: var(--border-active); }
+
+.card-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 10px;
+}
+
+.card-label.thm { color: var(--accent); }
+.card-label.def { color: var(--green); }
+.card-label.example { color: var(--orange); }
+.card-label.note { color: var(--pink); }
+.card-label.proof { color: var(--red); }
+
+.card.highlight-left {
+  border-left: 3px solid var(--accent);
+}
+
+.card.highlight-left.green { border-left-color: var(--green); }
+.card.highlight-left.orange { border-left-color: var(--orange); }
+.card.highlight-left.pink { border-left-color: var(--pink); }
+.card.highlight-left.red { border-left-color: var(--red); }
+
+/* ─── Collapsible ─── */
+details {
+  margin: 16px 0;
+}
+
+details summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--accent);
+  font-size: 14px;
+  padding: 6px 0;
+  list-style: none;
+  user-select: none;
+}
+
+details summary::before {
+  content: '▸ ';
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+details .inner {
+  padding: 12px 0 4px 16px;
+  border-left: 1px solid var(--border);
+  margin-left: 4px;
+}
+
+/* ─── Equation box ─── */
+.eq-box {
+  background: rgba(110,184,247,0.04);
+  border: 1px solid rgba(110,184,247,0.12);
+  border-radius: 8px;
+  padding: 14px 20px;
+  margin: 14px 0;
+  text-align: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+.eq-box .eq-label {
+  float: right;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+/* ─── Case blocks ─── */
+.case {
+  margin: 12px 0;
+  padding: 10px 16px;
+  background: var(--bg);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.case-title {
+  font-weight: 600;
+  color: var(--orange);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+/* ─── Type pills ─── */
+.type-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin: 16px 0;
+}
+
+.type-pill {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+}
+
+.type-pill .tp-title {
+  font-weight: 600;
+  color: var(--green);
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+/* ─── Problems section ─── */
+.problem-list {
+  counter-reset: prob;
+}
+
+.problem-item {
+  counter-increment: prob;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.problem-item::before {
+  content: counter(prob) ". ";
+  color: var(--accent);
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+/* ─── Misc ─── */
+p { margin: 10px 0; overflow-wrap: break-word; }
+
+.mjx-chtml { overflow-x: auto; }
+
+mjx-container { max-width: 100%; }
+
+mjx-container[jax="SVG"] { vertical-align: middle !important; }
+
+mjx-container[jax="SVG"][display="true"] { 
+  vertical-align: baseline !important; 
+  display: block !important;
+  margin: 10px auto !important;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.card p, .case p, .type-pill p, p {
+  line-height: 2.2;
+}
+
+.case-title {
+  line-height: 2.0;
+}
+
+mark {
+  background: rgba(110,184,247,0.15);
+  color: var(--text-bright);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.search-highlight {
+  background: rgba(232,168,110,0.3) !important;
+  color: var(--text-bright) !important;
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+
+/* ─── Back to top ─── */
+#back-top {
+  position: fixed;
+  bottom: 28px; right: 28px;
+  width: 40px; height: 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--accent);
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 90;
+  display: flex; align-items: center; justify-content: center;
+}
+
+#back-top.show { opacity: 1; }
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  #sidebar { transform: translateX(-100%); }
+  #sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,0.5); }
+  #sidebar-toggle { display: flex; align-items: center; justify-content: center; }
+  #main { margin-left: 0; padding: 56px 16px 100px; max-width: 100%; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; }
+  h3 { font-size: 15px; }
+  .card { padding: 16px 14px; }
+  .eq-box { padding: 10px 8px; font-size: 14px; }
+  .eq-box .eq-label { float: none; display: block; text-align: right; margin-top: 4px; }
+  .type-pill { padding: 12px 14px; }
+  .card-label { font-size: 10px; }
+  body { font-size: 14px; }
+  #search-bar input { font-size: 13px; padding: 9px 12px 9px 36px; }
+  #search-bar .icon { left: 12px; }
+}
+
+@media (max-width: 400px) {
+  #main { padding: 50px 10px 80px; }
+  .eq-box { padding: 8px 6px; }
+  .card { padding: 12px 10px; }
+}
+</style>
+</head>
+<body>
+
+<button id="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+<aside id="sidebar">
+  <div class="logo">CH 12–13 筆記目錄</div>
+  <nav id="nav">
+    <a href="#s12-1">12.1 特徵值、特徵函數與 S-L 問題</a>
+    <a href="#sl-eq" class="sub">標準 S-L 方程式</a>
+    <a href="#bvp-types" class="sub">三種邊值問題類型</a>
+    <a href="#thm12-1" class="sub">定理 12.1 一般性結論</a>
+    <a href="#ex12-1" class="sub">範例 12.1 正規問題</a>
+    <a href="#ex12-2" class="sub">範例 12.2 週期性問題</a>
+    <a href="#ex12-3" class="sub">範例 12.3 Neumann 邊界</a>
+    <a href="#ex12-4" class="sub">範例 12.4 輻射邊界</a>
+    <a href="#completeness" class="sub">完備性</a>
+    <a href="#s12-2">12.2 特徵函數展開</a>
+    <a href="#weighted-orth" class="sub">定理 12.2 加權正交性</a>
+    <a href="#coeff" class="sub">展開係數公式</a>
+    <a href="#thm12-3" class="sub">定理 12.3 收斂性</a>
+    <a href="#ex12-5" class="sub">範例 12.5</a>
+    <a href="#ex12-6" class="sub">範例 12.6</a>
+    <a href="#props" class="sub">12.2.1 係數性質</a>
+    <a href="#bessel" class="sub">Bessel 不等式 & Parseval</a>
+    <a href="#prob-12-2" class="sub">12.2 習題</a>
+    <a href="#s12-3">12.3 傅立葉級數</a>
+    <a href="#fs-full" class="sub">12.3.1 [-L,L] 上的傅立葉級數</a>
+    <a href="#thm12-4" class="sub">定理 12.4 收斂性</a>
+    <a href="#ex12-7" class="sub">範例 12.7</a>
+    <a href="#fs-cos" class="sub">12.3.2 餘弦級數</a>
+    <a href="#fs-sin" class="sub">12.3.3 正弦級數</a>
+    <a href="#prob-12-3" class="sub">12.3 習題</a>
+
+    <a href="#s13" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px;">第十三章 傅立葉級數</a>
+    <a href="#s13-1">13.1 [-L,L] 上的傅立葉級數</a>
+    <a href="#thm13-1" class="sub">定理 13.1 收斂性</a>
+    <a href="#ex13-1" class="sub">範例 13.1</a>
+    <a href="#ex13-2" class="sub">範例 13.2</a>
+    <a href="#even-odd" class="sub">13.1.1 偶/奇函數</a>
+    <a href="#ex13-3" class="sub">範例 13.3</a>
+    <a href="#gibbs" class="sub">13.1.2 Gibbs 現象</a>
+    <a href="#prob-13-1" class="sub">13.1 習題</a>
+    <a href="#s13-2">13.2 正弦與餘弦級數</a>
+    <a href="#thm13-2" class="sub">定理 13.2 正弦收斂</a>
+    <a href="#ex13-4" class="sub">範例 13.4</a>
+    <a href="#thm13-3" class="sub">定理 13.3 餘弦收斂</a>
+    <a href="#ex13-5" class="sub">範例 13.5</a>
+    <a href="#prob-13-2" class="sub">13.2 習題</a>
+    <a href="#s13-3">13.3 積分與微分</a>
+    <a href="#thm13-4" class="sub">定理 13.4 逐項積分</a>
+    <a href="#thm13-5" class="sub">定理 13.5 逐項微分</a>
+    <a href="#thm13-6" class="sub">定理 13.6 絕對均勻收斂</a>
+    <a href="#prob-13-3" class="sub">13.3 習題</a>
+    <a href="#s13-5">13.5 相角形式</a>
+    <a href="#ex13-11" class="sub">範例 13.11</a>
+    <a href="#prob-13-5" class="sub">13.5 習題</a>
+    <a href="#s13-6">13.6 複數傅立葉級數</a>
+    <a href="#ex13-12" class="sub">範例 13.12</a>
+    <a href="#prob-13-6" class="sub">13.6 習題</a>
+
+    <a href="#convergence-summary" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px; color:var(--green);">★ 收斂性總整理</a>
+
+    <a href="#exam" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px;">附錄：2024 春季考古題</a>
+    <a href="#exam-q1" class="sub">Q1 S-L 分類</a>
+    <a href="#exam-q2" class="sub">Q2 特徵函數展開</a>
+    <a href="#exam-q3" class="sub">Q3 複數傅立葉</a>
+    <a href="#exam-q4" class="sub">Q4 逐項微分</a>
+    <a href="#exam-q5" class="sub">Q5 收斂判斷</a>
+  </nav>
+</aside>
+
+<main id="main">
+
+<!-- ─── Search ─── -->
+<div id="search-bar">
+  <span class="icon">⌕</span>
+  <input type="text" id="search-input" placeholder="搜尋關鍵字（例：特徵值、正交、Parseval）…">
+  <div id="search-results"></div>
+</div>
+
+<!-- ═══════════════════════════════════ -->
+<!-- TITLE -->
+<!-- ═══════════════════════════════════ -->
+<h1><span class="ch-num">第十二章</span> Sturm-Liouville 問題與特徵函數展開</h1>
+<p class="subtitle">Sturm-Liouville Problems &amp; Eigenfunction Expansions</p>
+
+<!-- ═══════════════════════════════════ -->
+<!-- 12.1 -->
+<!-- ═══════════════════════════════════ -->
+<h2 id="s12-1"><span class="sec-num">12.1</span> 特徵值、特徵函數與 Sturm-Liouville 問題</h2>
+
+<h3 id="sl-eq">標準 Sturm-Liouville 方程式</h3>
+
+<p>起始形式：</p>
+<div class="eq-box"><span class="eq-label">(12.1)</span>$$y''+R(x)y'+(Q(x)+\lambda P(x))y=0$$</div>
+
+<p>兩邊同乘積分因子 $r(x)=e^{\int R(x)\,dx}$ 後可改寫為<mark>標準形式</mark>：</p>
+<div class="eq-box"><span class="eq-label">(12.2)</span>$$(ry')' + (q+\lambda p)\,y = 0$$</div>
+
+<div class="card highlight-left green">
+  <div class="card-label def">基本假設</div>
+  <p>$p,\,q,\,r$ 在區間 $(a,b)$ 或 $[a,b]$ 上連續，且 $r(x)>0$、$p(x)>0$ 於 $a < x < b$。</p>
+  <p>目標：找到使此方程式存在<strong>非平凡解</strong> $y(x)$ 的 $\lambda$ 值。</p>
+  <p><strong>特徵值 (eigenvalue)</strong>：使非平凡解存在的 $\lambda$。<br>
+  <strong>特徵函數 (eigenfunction)</strong>：對應 $\lambda$ 的非平凡解 $y(x)$。</p>
+</div>
+
+<!-- BVP Types -->
+<h3 id="bvp-types">三種邊值問題類型</h3>
+
+<div class="type-grid">
+  <div class="type-pill">
+    <div class="tp-title">1. 正規 (Regular) S-L 問題</div>
+    <p>邊界條件：</p>
+    $$A_1 y(a)+A_2 y'(a)=0,\quad B_1 y(b)+B_2 y'(b)=0$$
+    <p>$A_1,A_2$ 不全為零；$B_1,B_2$ 不全為零。</p>
+  </div>
+  <div class="type-pill">
+    <div class="tp-title">2. 週期性 (Periodic) S-L 問題</div>
+    <p>條件：$r(a)=r(b)$，邊界條件：</p>
+    $$y(a)=y(b),\quad y'(a)=y'(b)$$
+  </div>
+  <div class="type-pill">
+    <div class="tp-title">3. 奇異 (Singular) S-L 問題</div>
+    <p>$r(a)=0$ 或 $r(b)=0$（不全為零），僅在 $r\neq 0$ 的端點設定邊界條件。</p>
+    <p>若 $r(a)=0$：僅有 $B_1 y(b)+B_2 y'(b)=0$<br>
+    若 $r(b)=0$：僅有 $A_1 y(a)+A_2 y'(a)=0$</p>
+  </div>
+</div>
+
+<!-- Thm 12.1 -->
+<div class="card highlight-left" id="thm12-1">
+  <div class="card-label thm">定理 12.1 ─ S-L 問題的一般性結論</div>
+  <ol style="padding-left:18px; margin-top:8px;">
+    <li>正規與週期性 S-L 問題具有<strong>無限多個相異特徵值</strong> $\lambda_1,\lambda_2,\dots$，且 $\displaystyle\lim_{n\to\infty}\lambda_n=\infty$。</li>
+    <li>所有 S-L 問題的特徵值<strong>均為實數</strong>。</li>
+    <li>特徵函數的任何非零常數倍仍為特徵函數。</li>
+    <li>正規問題中，同一特徵值的兩個特徵函數必為彼此之常數倍（唯一性，up to scalar）。</li>
+  </ol>
+</div>
+
+<!-- ─── Example 12.1 ─── -->
+<div class="card highlight-left orange" id="ex12-1">
+  <div class="card-label example">範例 12.1 ─ 正規問題 $y''+\lambda y=0;\;y(0)=y(L)=0$</div>
+  <p>區間 $[0,L]$，正規問題。</p>
+
+  <div class="case">
+    <div class="case-title">Case 1：$\lambda = 0$</div>
+    <p>$y=cx+d$，代入 BC 得 $c=d=0$ → 平凡解。$\lambda=0$ <strong>不是</strong>特徵值。</p>
+  </div>
+
+  <div class="case">
+    <div class="case-title">Case 2：$\lambda < 0$（令 $\lambda=-k^2,\;k>0$）</div>
+    <p>$y=c_1 e^{kx}+c_2 e^{-kx}$。由 $y(0)=0$ 得 $c_2=-c_1$。</p>
+    <p>$y(L)=c_1(e^{kL}-e^{-kL})=0$，但 $e^{kL}\neq e^{-kL}$ → $c_1=0$。<strong>無負特徵值。</strong></p>
+  </div>
+
+  <div class="case">
+    <div class="case-title">Case 3：$\lambda > 0$（令 $\lambda=k^2,\;k>0$）</div>
+    <p>$y=c_1\cos(kx)+c_2\sin(kx)$。$y(0)=c_1=0$，故 $y=c_2\sin(kx)$。</p>
+    <p>$y(L)=c_2\sin(kL)=0$。取 $c_2\neq 0$ → $\sin(kL)=0$ → $kL=n\pi$。</p>
+  </div>
+
+  <div class="eq-box" style="margin-top:12px;">
+    $$\boxed{\lambda_n = \left(\frac{n\pi}{L}\right)^2,\quad \varphi_n(x)=\sin\!\left(\frac{n\pi x}{L}\right),\quad n=1,2,3,\dots}$$
+  </div>
+</div>
+
+<!-- ─── Example 12.2 ─── -->
+<div class="card highlight-left orange" id="ex12-2">
+  <div class="card-label example">範例 12.2 ─ 週期性問題 $y''+\lambda y=0;\;y(-L)=y(L),\;y'(-L)=y'(L)$</div>
+  <p>區間 $[-L,L]$，$r(x)=1$ 故 $r(-L)=r(L)$。</p>
+
+  <div class="case">
+    <div class="case-title">Case 1：$\lambda=0$</div>
+    <p>$y=cx+d$。由 BC 得 $c=0$。<strong>$\lambda=0$ 是特徵值，特徵函數為常數 $\varphi_0=1$。</strong></p>
+  </div>
+
+  <div class="case">
+    <div class="case-title">Case 2：$\lambda<0$</div>
+    <p>$y=c_1 e^{kx}+c_2 e^{-kx}$。聯立 BC 得 $c_1=c_2$ 再得 $c_1=0$。<strong>無負特徵值。</strong></p>
+  </div>
+
+  <div class="case">
+    <div class="case-title">Case 3：$\lambda>0$</div>
+    <p>$y=c_1\cos(kx)+c_2\sin(kx)$。BC 要求 $\sin(kL)=0$ → $kL=n\pi$。</p>
+  </div>
+
+  <div class="eq-box">
+    $$\boxed{\lambda_n = \left(\frac{n\pi}{L}\right)^2,\quad \varphi_n(x)=c_1\cos\!\left(\frac{n\pi x}{L}\right)+c_2\sin\!\left(\frac{n\pi x}{L}\right),\quad n=0,1,2,\dots}$$
+  </div>
+
+  <div class="card highlight-left pink" style="margin-top:12px;">
+    <div class="card-label note">注意</div>
+    <p>週期性問題中，每個正特徵值可對應<strong>兩個獨立特徵函數</strong>：$\cos(n\pi x/L)$ 與 $\sin(n\pi x/L)$。令 $n=0$ 可整合 Case 1 與 Case 3。</p>
+  </div>
+</div>
+
+<!-- ─── Example 12.3 ─── -->
+<div class="card highlight-left orange" id="ex12-3">
+  <div class="card-label example">範例 12.3 ─ Neumann BC：$y''+\lambda y=0;\;y'(0)=y'(L)=0$</div>
+  <p>正規問題，區間 $[0,L]$。$\lambda=0$ 是特徵值（$\varphi_0=1$）。無負特徵值。</p>
+  <div class="eq-box">
+    $$\boxed{\lambda_n = \frac{n^2\pi^2}{L^2},\quad \varphi_n(x)=\cos\!\left(\frac{n\pi x}{L}\right),\quad n=0,1,2,\dots}$$
+  </div>
+</div>
+
+<!-- ─── Example 12.4 ─── -->
+<div class="card highlight-left orange" id="ex12-4">
+  <div class="card-label example">範例 12.4 ─ 輻射邊界：$y''+\lambda y=0;\;y(0)=0,\;y'(L)+Ay(L)=0$</div>
+  <p>$A > 0$ 為正數常數（與能量散失率有關）。無負特徵值， $\lambda = 0$ 亦非特徵值。</p>
+  <p>令 $\lambda=k^2$，由 BC 得：</p>
+  <div class="eq-box">
+    $$\tan(kL) = -\frac{k}{A}$$
+  </div>
+  <p>此為超越方程式，須用<strong>圖解法或數值方法</strong>求解。令 $z=kL$：</p>
+  <div class="eq-box">$$\tan(z)=-\frac{z}{AL}$$</div>
+  <p>直線 $w=-z/(AL)$ 與 $w=\tan(z)$ 在 $z>0$ 有無限多交點 → 無限多特徵值。</p>
+</div>
+
+<!-- Completeness -->
+<h3 id="completeness">特徵函數的完備性 (Completeness)</h3>
+
+<div class="card highlight-left green">
+  <div class="card-label def">完備性定義</div>
+  <p>如果一組特徵函數的列表中，<strong>任何其他特徵函數都能表示為列表中特徵函數的線性組合或常數倍數</strong>，則該列表是<strong>完備的</strong>。</p>
+  <p>不完備的列表會遺漏無法從中還原的資訊。</p>
+</div>
+
+<!-- ═══════════════════════════════════ -->
+<!-- 12.2 -->
+<!-- ═══════════════════════════════════ -->
+<h2 id="s12-2"><span class="sec-num">12.2</span> 特徵函數展開 (Eigenfunction Expansions)</h2>
+
+<p>核心想法：將函數 $f(x)$ 寫成特徵函數的無窮級數：</p>
+<div class="eq-box"><span class="eq-label">(12.3)</span>$$f(x)=\sum_{n=1}^{\infty}c_n\,\varphi_n(x)$$</div>
+
+<h3 id="weighted-orth">定理 12.2 ─ 特徵函數的加權正交性</h3>
+
+<div class="card highlight-left" id="thm12-2">
+  <div class="card-label thm">定理 12.2</div>
+  <p>對應於<strong>相異特徵值</strong>的特徵函數，在 $[a,b]$ 上以權重函數 $p(x)$ 正交：</p>
+  <div class="eq-box"><span class="eq-label">(12.4)</span>
+  $$\lambda\neq\mu \implies \int_a^b p(x)\,\varphi(x)\,\psi(x)\,dx = 0$$
+  </div>
+  <p>其中 $p(x)$ 即標準 S-L 方程式 (12.2) 中 $\lambda$ 的係數。</p>
+</div>
+
+<details>
+  <summary>定理 12.2 證明（展開 / 收合）</summary>
+  <div class="inner">
+    <p>已知 $\varphi$ 對應 $\lambda$，$\psi$ 對應 $\mu$：</p>
+    $$(r\varphi')' + (q+\lambda p)\varphi = 0, \quad (r\psi')' + (q+\mu p)\psi = 0$$
+    <p>第一式乘 $\psi$、第二式乘 $\varphi$，相減得：</p>
+    $$(r\psi')'\varphi - (r\varphi')'\psi + (\lambda-\mu)\,p\,\varphi\,\psi = 0$$
+    <p>定義 Wronskian $W = \varphi\psi' - \psi\varphi'$，可驗證：</p>
+    $$\frac{d}{dx}(rW) = (\lambda-\mu)\,p\,\varphi\,\psi$$
+    <p>兩邊從 $a$ 積到 $b$：</p>
+    <div class="eq-box"><span class="eq-label">(12.5)</span>
+    $$(\lambda-\mu)\int_a^b p\,\varphi\,\psi\,dx = r(b)W(b) - r(a)W(a)$$
+    </div>
+    <p>由邊界條件可證 $W(a)=W(b)=0$（正規情況下對兩端分別操作），因此右側為零。由於 $\lambda\neq\mu$，得 $\displaystyle\int_a^b p\,\varphi\,\psi\,dx=0$。</p>
+  </div>
+</details>
+
+<!-- Coefficients -->
+<h3 id="coeff">展開係數公式</h3>
+
+<p>在 $f(x)=\sum c_k\varphi_k(x)$ 兩邊乘 $p(x)\varphi_n(x)$ 再積分，利用正交性消去 $k\neq n$ 的項：</p>
+
+<div class="card highlight-left">
+  <div class="card-label thm">核心公式</div>
+  <div class="eq-box"><span class="eq-label">(12.6)</span>
+  $$\boxed{c_n = \frac{\displaystyle\int_a^b p(x)\,f(x)\,\varphi_n(x)\,dx}{\displaystyle\int_a^b p(x)\,\varphi_n^2(x)\,dx}}$$
+  </div>
+</div>
+
+<!-- Thm 12.3 -->
+<div class="card highlight-left" id="thm12-3">
+  <div class="card-label thm">定理 12.3 ─ 特徵函數展開的收斂性</div>
+  <p>設 $\varphi_n$ 為完備特徵函數、$c_n$ 由 (12.6) 給出、$f(x)$ 在 $[a,b]$ 上分段平滑。</p>
+  <p>則對 $a < x < b$，級數 $\sum c_n \varphi_n(x)$ 收斂至：</p>
+  <div class="eq-box">$$\frac{1}{2}\bigl[f(x^-)+f(x^+)\bigr]$$</div>
+  <p>連續點 → 收斂至 $f(x)$。跳躍不連續點 → 收斂至左右極限的平均值。</p>
+</div>
+
+<!-- Example 12.5 -->
+<div class="card highlight-left orange" id="ex12-5">
+  <div class="card-label example">範例 12.5</div>
+  <p>$y''+\lambda y=0;\;y'(0)=y'(2\pi)=0$，$L=2\pi$。</p>
+  <p>特徵值 $\lambda_n = n^2/4$，特徵函數 $\varphi_n(x)=\cos(nx/2)$，$n=0,1,2,\dots$。權重 $p(x)=1$。</p>
+  <p>展開 $f(x)=\begin{cases}x & 0\le x<2 \\ 6 & 2\le x\le 2\pi\end{cases}$</p>
+
+  <details>
+    <summary>完整推導</summary>
+    <div class="inner">
+      <p><strong>$c_0$：</strong></p>
+      $$c_0 = \frac{\int_0^{2\pi}f(x)\cdot 1\,dx}{\int_0^{2\pi}1^2\,dx} = \frac{\int_0^2 x\,dx + \int_2^{2\pi}6\,dx}{2\pi} = \frac{2 + 6(2\pi-2)}{2\pi} = \frac{12\pi - 10}{2\pi} = 6 - \frac{5}{\pi}$$
+      <p><strong>$c_n$（$n \ge 1$）：</strong></p>
+      $$c_n = \frac{\int_0^{2\pi}f(x)\cos(nx/2)\,dx}{\int_0^{2\pi}\cos^2(nx/2)\,dx}$$
+      <p>分母：$\int_0^{2\pi}\cos^2(nx/2)\,dx = \pi$</p>
+      <p>分子拆兩段：</p>
+      $$\int_0^2 x\cos(nx/2)\,dx = \left[\frac{2x}{n}\sin(nx/2)\right]_0^2 + \frac{4}{n^2}[\cos(nx/2)]_0^2 = \frac{4}{n}\sin(n) + \frac{4}{n^2}(\cos n - 1)$$
+      $$\int_2^{2\pi}6\cos(nx/2)\,dx = \frac{12}{n}[\sin(nx/2)]_2^{2\pi} = \frac{12}{n}(\sin(n\pi) - \sin(n)) = -\frac{12}{n}\sin(n)$$
+      <p>合計分子 $= \frac{4}{n}\sin n + \frac{4}{n^2}(\cos n - 1) - \frac{12}{n}\sin n = \frac{4(\cos n -1)}{n^2} - \frac{8\sin n}{n}$</p>
+      <div class="eq-box">
+      $$\boxed{c_n = \frac{4(\cos n - 1)}{n^2\pi} - \frac{8\sin n}{n\pi}}$$
+      </div>
+      <p><strong>收斂：</strong>連續處收斂至 $f(x)$。在 $x=2$（跳躍處），收斂至 $\frac{1}{2}(2+6)=4$。</p>
+    </div>
+  </details>
+</div>
+
+<!-- Example 12.6 -->
+<div class="card highlight-left orange" id="ex12-6">
+  <div class="card-label example">範例 12.6 ─ 非標準形式</div>
+  <p>$y''+4y'+(3+\lambda)y=0;\;y(0)=y(1)=0$，展開 $f(x)=x$。</p>
+
+  <details>
+    <summary>完整推導</summary>
+    <div class="inner">
+      <p><strong>Step 1：求特徵值</strong></p>
+      <p>令 $y=e^{rx}$ → $r^2+4r+(3+\lambda)=0$ → $r = -2\pm\sqrt{1-\lambda}$。</p>
+      <p>$1-\lambda=0$：重根 $r=-2$，$y=(c_1+c_2 x)e^{-2x}$，BC 強制 $c_1=c_2=0$。$\lambda=1$ 不是特徵值。</p>
+      <p>$1-\lambda > 0$：$r=-2\pm k$，$y=c_1 e^{(-2+k)x}+c_2 e^{(-2-k)x}$，BC 同樣只有平凡解。</p>
+      <p>$1-\lambda < 0$：令 $1-\lambda = -k^2$（$k>0$），$r=-2\pm ik$。</p>
+      $$y = e^{-2x}(c_1\cos(kx)+c_2\sin(kx))$$
+      <p>$y(0)=c_1=0$ → $y=c_2 e^{-2x}\sin(kx)$。$y(1)=c_2 e^{-2}\sin(k)=0$ → $k=n\pi$。</p>
+      <div class="eq-box">$$\lambda_n = 1+n^2\pi^2, \quad \varphi_n(x)=e^{-2x}\sin(n\pi x)$$</div>
+
+      <p><strong>Step 2：化為標準形式求 $p(x)$</strong></p>
+      <p>$y'' + 4y' + (3+\lambda)y = 0$ 中 $R(x)=4$，乘以 $e^{\int 4\,dx}=e^{4x}$：</p>
+      $$(e^{4x}y')' + (3e^{4x} + \lambda e^{4x})y = 0$$
+      <p>比較標準形式 → $p(x) = e^{4x}$。</p>
+
+      <p><strong>Step 3：求係數</strong></p>
+      $$c_n = \frac{\int_0^1 e^{4x}\cdot x\cdot e^{-2x}\sin(n\pi x)\,dx}{\int_0^1 e^{4x}\cdot e^{-4x}\sin^2(n\pi x)\,dx} = \frac{\int_0^1 x\,e^{2x}\sin(n\pi x)\,dx}{\int_0^1 \sin^2(n\pi x)\,dx}$$
+      <p>分母：$\int_0^1 \sin^2(n\pi x)\,dx = 1/2$</p>
+      <p>分子：用兩次分部積分，令 $I = \int_0^1 x\,e^{2x}\sin(n\pi x)\,dx$</p>
+      $$I = \left[\frac{x\,e^{2x}(2\sin(n\pi x)-n\pi\cos(n\pi x))}{4+n^2\pi^2}\right]_0^1 - \int_0^1 \frac{e^{2x}(2\sin(n\pi x)-n\pi\cos(n\pi x))}{4+n^2\pi^2}\,dx$$
+      <p>邊界項：$x=1$ 時 $\sin(n\pi)=0$，$\cos(n\pi)=(-1)^n$，故為 $\frac{-n\pi(-1)^n e^2}{4+n^2\pi^2}$。</p>
+      <p>剩餘積分再用公式 $\int e^{2x}\sin(n\pi x)\,dx$ 和 $\int e^{2x}\cos(n\pi x)\,dx$，最終：</p>
+      <div class="eq-box">$$\boxed{c_n = \frac{2I}{1} = \frac{-8n\pi - 2e^2 n^3\pi^3(-1)^n}{(4+n^2\pi^2)^2}}$$</div>
+    </div>
+  </details>
+</div>
+
+<!-- 12.2.1 Properties -->
+<h3 id="props">12.2.1 係數的性質</h3>
+
+<p><strong>正規化特徵函數 (Normalized Eigenfunctions)：</strong></p>
+<div class="eq-box">$$\Phi_n(x) = \frac{\varphi_n(x)}{\sqrt{\int_a^b p(x)\,\varphi_n^2(x)\,dx}}$$</div>
+<p>使得 $\int_a^b p(x)\,\Phi_n^2(x)\,dx = 1$，係數簡化為：</p>
+<div class="eq-box"><span class="eq-label">(12.8)</span>$$c_n = \int_a^b p(x)\,f(x)\,\Phi_n(x)\,dx$$</div>
+
+<p><strong>最佳最小平方逼近：</strong>選 $d_n=c_n$ 使得 $\int_a^b p(x)\bigl(f(x)-\sum d_n\Phi_n\bigr)^2 dx$ 最小。</p>
+
+<div class="card highlight-left" id="bessel">
+  <div class="card-label thm">Bessel 不等式 &amp; Parseval 等式</div>
+  <div class="eq-box"><span class="eq-label">(12.12)</span>
+  $$\sum_{n=1}^{\infty}c_n^2 \le \int_a^b p(x)\bigl(f(x)\bigr)^2 dx \quad\text{(Bessel 不等式)}$$
+  </div>
+  <p>若 $f$ 連續且 $f'$ 分段連續，則等號成立 → <strong>Parseval 等式</strong>。</p>
+</div>
+
+<!-- 12.2 Problems -->
+<h3 id="prob-12-2">Section 12.2 習題</h3>
+<div class="problem-list">
+  <div class="problem-item">$y''+\lambda y=0$, $y(0)=y(2)=0$, $f(x)=1-x$, $N=40$</div>
+  <div class="problem-item">$y''+\lambda y=0$, $y(0)=y'(\pi)=0$, $f(x)=x$, $N=5$</div>
+  <div class="problem-item">$y''+\lambda y=0$, $y'(0)=y(4)=0$, $f(x)=\begin{cases}-1 & 0\le x\le2 \\ 1 & 2<x\le4\end{cases}$, $N=60$</div>
+  <div class="problem-item">$y''+\lambda y=0$, $y'(0)=y'(\pi)=0$, $f(x)=\sin(2x)$, $N=10$</div>
+  <div class="problem-item">$y''+\lambda y=0$, $y(-3\pi)=y(3\pi)$, $y'(-3\pi)=y'(3\pi)$, $f(x)=x^2$, $N=5$</div>
+  <div class="problem-item">$y''+2y'+(1+\lambda)y=0$, $y(0)=y(1)=0$, $f(x)=\begin{cases}0 & 0\le x\le 1/2 \\ 1 & 1/2 < x\le 1\end{cases}$, $N=80$</div>
+  <div class="problem-item">用加權正交性證明 S-L 特徵值為實數（定理 12.1(2)）</div>
+</div>
+
+<!-- ═══════════════════════════════════ -->
+<!-- 12.3 -->
+<!-- ═══════════════════════════════════ -->
+<h2 id="s12-3"><span class="sec-num">12.3</span> 傅立葉級數 (Fourier Series)</h2>
+
+<p>傅立葉級數是<strong>特殊的特徵函數展開</strong>，應用最廣。三種常見形式：</p>
+
+<!-- 12.3.1 Full Fourier -->
+<h3 id="fs-full">12.3.1 $[-L,L]$ 上的傅立葉級數</h3>
+
+<p>來自週期性 S-L 問題（範例 12.2），完備特徵函數：</p>
+$$1,\;\cos(\pi x/L),\;\sin(\pi x/L),\;\cos(2\pi x/L),\;\sin(2\pi x/L),\;\dots$$
+<p>權重函數 $p(x)=1$。</p>
+
+<div class="card highlight-left">
+  <div class="card-label thm">傅立葉級數</div>
+  <div class="eq-box"><span class="eq-label">(12.13)</span>
+  $$f(x) \sim \frac{a_0}{2}+\sum_{n=1}^{\infty}\left[a_n\cos\!\left(\frac{n\pi x}{L}\right)+b_n\sin\!\left(\frac{n\pi x}{L}\right)\right]$$
+  </div>
+  <div class="eq-box"><span class="eq-label">(12.14)</span>
+  $$a_n = \frac{1}{L}\int_{-L}^{L}f(x)\cos\!\left(\frac{n\pi x}{L}\right)dx,\quad n=0,1,2,\dots$$
+  </div>
+  <div class="eq-box"><span class="eq-label">(12.15)</span>
+  $$b_n = \frac{1}{L}\int_{-L}^{L}f(x)\sin\!\left(\frac{n\pi x}{L}\right)dx,\quad n=1,2,\dots$$
+  </div>
+</div>
+
+<!-- Thm 12.4 -->
+<div class="card highlight-left" id="thm12-4">
+  <div class="card-label thm">定理 12.4 ─ 傅立葉級數的收斂性</div>
+  <p>若 $f(x)$ 在 $[-L,L]$ 上分段平滑，則：</p>
+  <p>• 在 $-L < x < L$：收斂至 $\dfrac{1}{2}\bigl(f(x^-)+f(x^+)\bigr)$</p>
+  <p>• 在端點 $x=\pm L$：收斂至 $\dfrac{1}{2}\bigl(f(-L^+)+f(L^-)\bigr)$</p>
+</div>
+
+<!-- Example 12.7 -->
+<div class="card highlight-left orange" id="ex12-7">
+  <div class="card-label example">範例 12.7</div>
+  <p>$f(x)=\begin{cases}x & -3\le x<1 \\ -2+x & 1\le x\le 3\end{cases}$，$[-3,3]$ 上展開。$L=3$。</p>
+
+  <details>
+    <summary>完整推導</summary>
+    <div class="inner">
+      <p><strong>$a_0$：</strong></p>
+      $$a_0 = \frac{1}{3}\int_{-3}^{3}f(x)\,dx = \frac{1}{3}\left[\int_{-3}^{1}x\,dx + \int_1^3(x-2)\,dx\right] = \frac{1}{3}\left[\frac{x^2}{2}\Big|_{-3}^1 + \frac{(x-2)^2}{2}\Big|_1^3\right] = \frac{1}{3}\left[-4+0\right] = -\frac{4}{3}$$
+
+      <p><strong>$a_n$：</strong></p>
+      $$a_n = \frac{1}{3}\int_{-3}^{3}f(x)\cos\!\left(\frac{n\pi x}{3}\right)dx = \frac{1}{3}\left[\int_{-3}^{1}x\cos\!\left(\frac{n\pi x}{3}\right)dx + \int_1^3(x-2)\cos\!\left(\frac{n\pi x}{3}\right)dx\right]$$
+      <p>各段用分部積分 $\int u\cos(v)\,dx$，經計算後：</p>
+      <div class="eq-box">$$a_n = \frac{2}{n\pi}\sin\!\left(\frac{n\pi}{3}\right)$$</div>
+
+      <p><strong>$b_n$：</strong></p>
+      $$b_n = \frac{1}{3}\int_{-3}^{3}f(x)\sin\!\left(\frac{n\pi x}{3}\right)dx = \frac{1}{3}\left[\int_{-3}^{1}x\sin\!\left(\frac{n\pi x}{3}\right)dx + \int_1^3(x-2)\sin\!\left(\frac{n\pi x}{3}\right)dx\right]$$
+      <p>各段用分部積分，經計算後：</p>
+      <div class="eq-box">$$b_n = -\frac{2}{n\pi}\left(2(-1)^n + \cos\!\left(\frac{n\pi}{3}\right)\right)$$</div>
+
+      <p><strong>收斂判斷：</strong></p>
+      <p>$f(1^-)=1$，$f(1^+)=-2+1=-1$ → $x=1$ 跳躍，收斂至 $\frac{1}{2}(1+(-1))=0$。</p>
+      <p>$f(-3^+)=-3$，$f(3^-)=3-2=1$ → 端點收斂至 $\frac{1}{2}(-3+1)=-1$。</p>
+    </div>
+  </details>
+</div>
+
+<!-- 12.3.2 Cosine -->
+<h3 id="fs-cos">12.3.2 $[0,L]$ 上的傅立葉餘弦級數</h3>
+
+<p>來自 S-L 問題 $y''+\lambda y=0;\;y'(0)=y'(L)=0$（範例 12.3）。</p>
+
+<div class="card highlight-left">
+  <div class="card-label thm">餘弦級數</div>
+  <div class="eq-box"><span class="eq-label">(12.16)</span>
+  $$g(x) \sim \frac{a_0}{2}+\sum_{n=1}^{\infty}a_n\cos\!\left(\frac{n\pi x}{L}\right)$$
+  </div>
+  <div class="eq-box"><span class="eq-label">(12.17)</span>
+  $$a_n = \frac{2}{L}\int_0^L g(x)\cos\!\left(\frac{n\pi x}{L}\right)dx,\quad n=0,1,2,\dots$$
+  </div>
+</div>
+
+<div class="card highlight-left" style="margin-top:12px;">
+  <div class="card-label thm">定理 12.5 ─ 餘弦級數收斂性</div>
+  <p>$g$ 分段平滑。 在 $0 < x < L$ 收斂至 $\frac{1}{2}(g(x^-)+g(x^+))$。</p>
+  <p>$x=0$ 處收斂至 $g(0^+)$； $x=L$ 處收斂至 $g(L^-)$。</p>
+</div>
+
+<div class="card highlight-left orange" style="margin-top:12px;">
+  <div class="card-label example">範例 12.8 ─ $g(x)=e^x$ 在 $[0,1]$ 上的餘弦展開</div>
+
+  <details>
+    <summary>完整推導</summary>
+    <div class="inner">
+      <p>$L=1$，餘弦係數公式 $a_n = 2\int_0^1 e^x\cos(n\pi x)\,dx$。</p>
+      <p><strong>$a_0$：</strong> $a_0 = 2\int_0^1 e^x\,dx = 2(e-1)$</p>
+      <p><strong>$a_n$（$n \ge 1$）：</strong>用公式 $\int e^{ax}\cos(bx)\,dx = \frac{e^{ax}(a\cos(bx)+b\sin(bx))}{a^2+b^2}$，取 $a=1$，$b=n\pi$：</p>
+      $$a_n = 2\left[\frac{e^x(\cos(n\pi x)+n\pi\sin(n\pi x))}{1+n^2\pi^2}\right]_0^1 = \frac{2}{1+n^2\pi^2}\left[e\cos(n\pi) - 1\right] = \frac{2(e(-1)^n-1)}{1+n^2\pi^2}$$
+      <div class="eq-box">$$\boxed{e^x \sim (e-1) + \sum_{n=1}^{\infty}\frac{2(e(-1)^n-1)}{1+n^2\pi^2}\cos(n\pi x)}$$</div>
+      <p>由定理 12.5：$x=0$ 收斂至 $g(0^+)=1=e^0$ ✓，$x=1$ 收斂至 $g(1^-)=e$ ✓。整個 $[0,1]$ 收斂至 $e^x$。</p>
+    </div>
+  </details>
+</div>
+
+<!-- 12.3.3 Sine -->
+<h3 id="fs-sin">12.3.3 $[0,L]$ 上的傅立葉正弦級數</h3>
+
+<p>來自 S-L 問題 $y''+\lambda y=0;\;y(0)=y(L)=0$（範例 12.1）。</p>
+
+<div class="card highlight-left">
+  <div class="card-label thm">正弦級數</div>
+  <div class="eq-box"><span class="eq-label">(12.18)</span>
+  $$g(x) \sim \sum_{n=1}^{\infty}b_n\sin\!\left(\frac{n\pi x}{L}\right)$$
+  </div>
+  <div class="eq-box"><span class="eq-label">(12.19)</span>
+  $$b_n = \frac{2}{L}\int_0^L g(x)\sin\!\left(\frac{n\pi x}{L}\right)dx,\quad n=1,2,\dots$$
+  </div>
+</div>
+
+<div class="card highlight-left" style="margin-top:12px;">
+  <div class="card-label thm">定理 12.6 ─ 正弦級數收斂性</div>
+  <p>$g$ 分段平滑。 在 $0 < x < L$ 收斂至 $\frac{1}{2}(g(x^-)+g(x^+))$。</p>
+  <p>$x=0$ 與 $x=L$ 處：<strong>級數收斂至 $0$</strong>。</p>
+</div>
+
+<div class="card highlight-left orange" style="margin-top:12px;">
+  <div class="card-label example">範例 12.9 ─ $g(x)=e^x$ 在 $[0,1]$ 上的正弦展開</div>
+
+  <details>
+    <summary>完整推導</summary>
+    <div class="inner">
+      <p>$L=1$，正弦係數公式 $b_n = 2\int_0^1 e^x\sin(n\pi x)\,dx$。</p>
+      <p>用公式 $\int e^{ax}\sin(bx)\,dx = \frac{e^{ax}(a\sin(bx)-b\cos(bx))}{a^2+b^2}$，取 $a=1$，$b=n\pi$：</p>
+      $$b_n = 2\left[\frac{e^x(\sin(n\pi x)-n\pi\cos(n\pi x))}{1+n^2\pi^2}\right]_0^1 = \frac{2}{1+n^2\pi^2}\left[-n\pi e(-1)^n + n\pi\right]$$
+      <div class="eq-box">$$\boxed{b_n = \frac{2n\pi(1-(-1)^n e)}{1+n^2\pi^2}}$$</div>
+      $$e^x \sim \sum_{n=1}^{\infty}\frac{2n\pi(1-(-1)^n e)}{1+n^2\pi^2}\sin(n\pi x)$$
+      <p>由定理 12.6：$0 < x < 1$ 收斂至 $e^x$；$x=0$ 和 $x=1$ 處收斂至 $0$。收斂速度比餘弦級數慢得多。</p>
+    </div>
+  </details>
+</div>
+
+<div class="card highlight-left pink" style="margin-top:16px;">
+  <div class="card-label note">偶函數 / 奇函數與傅立葉級數的關係</div>
+  <p><strong>偶函數</strong> $f(-x)=f(x)$：$[-L,L]$ 上的傅立葉級數<strong>只有餘弦項</strong>，$a_n = \frac{2}{L}\int_0^L f(x)\cos(n\pi x/L)\,dx$。</p>
+  <p><strong>奇函數</strong> $f(-x)=-f(x)$：$[-L,L]$ 上的傅立葉級數<strong>只有正弦項</strong>，$b_n = \frac{2}{L}\int_0^L f(x)\sin(n\pi x/L)\,dx$。</p>
+  <p>任何函數可分解為偶函數 + 奇函數之和。同時為偶函數與奇函數的唯有零函數。</p>
+</div>
+
+<!-- 12.3 Problems -->
+<h3 id="prob-12-3">Section 12.3 習題</h3>
+
+<p><strong>1–12：寫出傅立葉級數並用收斂定理求和</strong></p>
+<div class="problem-list">
+  <div class="problem-item">$f(x)=4$, $-3\le x\le 3$</div>
+  <div class="problem-item">$f(x)=x$, $-1\le x\le 1$</div>
+  <div class="problem-item">$f(x)=\cosh(\pi x)$, $-1\le x\le 1$</div>
+  <div class="problem-item">$f(x)=1-|x|$, $-2\le x\le 2$</div>
+  <div class="problem-item">$f(x)=\begin{cases}-4 & -\pi\le x\le 0 \\ 4 & 0<x\le\pi\end{cases}$</div>
+  <div class="problem-item">$f(x)=\sin(2x)$, $-\pi\le x\le\pi$</div>
+  <div class="problem-item">$f(x)=x^2-x+3$, $-2\le x\le 2$</div>
+  <div class="problem-item">$f(x)=\begin{cases}-x & -5\le x<0 \\ 1+x^2 & 0\le x\le 5\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}1 & -\pi\le x<0 \\ 2 & 0\le x\le\pi\end{cases}$</div>
+  <div class="problem-item">$f(x)=\cos(x/2)-\sin(x)$, $-\pi\le x\le\pi$</div>
+  <div class="problem-item">$f(x)=\cos(x)$, $-3\le x\le 3$</div>
+  <div class="problem-item">$f(x)=\begin{cases}1-x & -1\le x\le 0 \\ 0 & 0<x\le 1\end{cases}$</div>
+</div>
+
+<p style="margin-top:20px;"><strong>13–15：求傅立葉級數之和（無需求出展開式）</strong></p>
+<div class="problem-list" style="counter-reset: prob 12;">
+  <div class="problem-item">$f(x)=\begin{cases}2x & -3\le x<-2 \\ 0 & -2\le x<1 \\ x^2 & 1\le x\le 3\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}0 & -1\le x<1/2 \\ 1 & 1/2<x\le 3/4 \\ 2 & 3/4<x\le 1\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}-2 & -4\le x\le -2 \\ 1+x^2 & -2<x\le 2 \\ 0 & 2<x\le 4\end{cases}$</div>
+</div>
+
+<p style="margin-top:20px;"><strong>16–19：證明題</strong></p>
+<div class="problem-list" style="counter-reset: prob 15;">
+  <div class="problem-item">偶函數在 $[-L,L]$ 的傅立葉級數無正弦項，且 $a_n = \frac{2}{L}\int_0^L f(x)\cos(n\pi x/L)\,dx$</div>
+  <div class="problem-item">奇函數在 $[-L,L]$ 的傅立葉級數無餘弦項，且 $b_n = \frac{2}{L}\int_0^L f(x)\sin(n\pi x/L)\,dx$</div>
+  <div class="problem-item">證明 $f(x)$ 可寫為一個偶函數與一個奇函數之和</div>
+  <div class="problem-item">找出所有同時為偶函數與奇函數的函數</div>
+</div>
+
+<p style="margin-top:20px;"><strong>20–30：求傅立葉正弦與餘弦級數</strong></p>
+<div class="problem-list" style="counter-reset: prob 19;">
+  <div class="problem-item">$f(x)=4$, $0\le x\le 3$</div>
+  <div class="problem-item">$f(x)=\begin{cases}1 & 0\le x\le 1 \\ -1 & 1<x\le 2\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}0 & 0\le x\le\pi \\ \cos(x) & \pi<x\le 2\pi\end{cases}$</div>
+  <div class="problem-item">$f(x)=2x$, $0\le x\le 1$</div>
+  <div class="problem-item">$f(x)=x^2$, $0\le x\le 2$</div>
+  <div class="problem-item">$f(x)=e^{-x}$, $0\le x\le 1$</div>
+  <div class="problem-item">$f(x)=\begin{cases}x & 0\le x\le 2 \\ 2-x & 2<x\le 3\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}1 & 0\le x<1 \\ 0 & 1\le x\le 3 \\ -1 & 3<x\le 5\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}x^2 & 0\le x<1 \\ 1 & 1\le x\le 4\end{cases}$</div>
+  <div class="problem-item">$f(x)=1-x^3$, $0\le x\le 2$</div>
+  <div class="problem-item">展開 $\sin(x)$ 為 $[0,\pi]$ 上餘弦級數，求 $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^n}{4n^2-1}$</div>
+</div>
+
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- CHAPTER 13 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div style="margin-top:80px; border-top:2px solid var(--accent); padding-top:40px;"></div>
+
+<h1 id="s13"><span class="ch-num">第十三章</span> 傅立葉級數</h1>
+<p class="subtitle">Fourier Series</p>
+
+<!-- ═══════════════ 13.1 ═══════════════ -->
+<h2 id="s13-1"><span class="sec-num">13.1</span> 區間 $[-L,L]$ 上的傅立葉級數</h2>
+
+<p>設 $f(x)$ 定義於 $[-L,L]$，目標是將其寫成正弦與餘弦的無窮級數：</p>
+<div class="eq-box"><span class="eq-label">(13.1)</span>
+$$f(x) = \frac{a_0}{2} + \sum_{n=1}^{\infty}\left[a_n\cos\!\left(\frac{n\pi x}{L}\right) + b_n\sin\!\left(\frac{n\pi x}{L}\right)\right]$$
+</div>
+
+<h3>係數推導</h3>
+
+<p>對 (13.1) 積分 $[-L,L]$，右側正弦、餘弦項積分皆為零：</p>
+<div class="eq-box"><span class="eq-label">(13.2)</span>$$a_0 = \frac{1}{L}\int_{-L}^{L}f(x)\,dx$$</div>
+
+<p>乘 $\cos(k\pi x/L)$ 後積分，利用正交性：</p>
+$$\int_{-L}^{L}\cos\!\left(\frac{n\pi x}{L}\right)\cos\!\left(\frac{k\pi x}{L}\right)dx = \begin{cases}0 & n\neq k \\ L & n=k\end{cases}$$
+
+<div class="card highlight-left">
+  <div class="card-label thm">傅立葉係數</div>
+  <div class="eq-box"><span class="eq-label">(13.7)</span>
+  $$a_n = \frac{1}{L}\int_{-L}^{L}f(x)\cos\!\left(\frac{n\pi x}{L}\right)dx, \quad n=0,1,2,\dots$$
+  </div>
+  <div class="eq-box"><span class="eq-label">(13.8)</span>
+  $$b_n = \frac{1}{L}\int_{-L}^{L}f(x)\sin\!\left(\frac{n\pi x}{L}\right)dx, \quad n=1,2,\dots$$
+  </div>
+</div>
+
+<h3>術語</h3>
+<div class="card highlight-left green">
+  <div class="card-label def">左極限 / 右極限 / 分段平滑</div>
+  <p>$f(c^-) = \lim_{x\to c^-}f(x)$（左極限），$f(c^+) = \lim_{x\to c^+}f(x)$（右極限）。</p>
+  <p><strong>分段連續</strong>：在 $[-L,L]$ 上連續，除有限個跳躍不連續點。</p>
+  <p><strong>分段平滑</strong>：導數 $f'(x)$ 為分段連續。圖形具有連續切線，除有限個斷層或尖銳處。</p>
+</div>
+
+<!-- Thm 13.1 -->
+<div class="card highlight-left" id="thm13-1">
+  <div class="card-label thm">定理 13.1 ─ 傅立葉級數的收斂性</div>
+  <p>設 $f(x)$ 在 $[-L,L]$ 上分段平滑。</p>
+  <p>1. 若 $-L < c < L$，傅立葉級數在 $x=c$ 收斂至 $\dfrac{1}{2}(f(c^-)+f(c^+))$。</p>
+  <p>2. 在端點 $x = -L$ 和 $x = L$，收斂至 $\dfrac{1}{2}(f(-L^+)+f(L^-))$。</p>
+  <p>連續點 → 收斂至 $f(x)$。跳躍處 → 收斂至左右極限平均值。</p>
+</div>
+
+<!-- Example 13.1 -->
+<div class="card highlight-left orange" id="ex13-1">
+  <div class="card-label example">範例 13.1</div>
+  <p>$f(x)=\begin{cases}x+1 & 0\le x\le 2 \\ x-1 & -2\le x < 0\end{cases}$，在 $[-2,2]$ 上展開。$L=2$。</p>
+
+  <details>
+    <summary>完整推導</summary>
+    <div class="inner">
+      <p><strong>收斂分析：</strong>$f(0^+)=1$，$f(0^-)=-1$ → 跳躍，收斂至 $0$。$f(-2^+)=-3$，$f(2^-)=3$ → 端點收斂至 $\frac{1}{2}(-3+3)=0$。</p>
+
+      <p><strong>判斷奇偶：</strong>$f(-x)=(-x)-1=-(x+1)=-f(x)$ → <strong>奇函數</strong>，$a_n = 0$。</p>
+
+      <p><strong>$b_n$：</strong></p>
+      $$b_n = \frac{1}{2}\int_{-2}^{2}f(x)\sin\!\left(\frac{n\pi x}{2}\right)dx = \frac{2}{2}\int_0^2(x+1)\sin\!\left(\frac{n\pi x}{2}\right)dx$$
+      <p>分部積分，令 $u=x+1$，$dv=\sin(n\pi x/2)\,dx$：</p>
+      $$= \left[-(x+1)\frac{2}{n\pi}\cos\!\left(\frac{n\pi x}{2}\right)\right]_0^2 + \frac{2}{n\pi}\int_0^2\cos\!\left(\frac{n\pi x}{2}\right)dx$$
+      $$= -\frac{6}{n\pi}\cos(n\pi) + \frac{2}{n\pi} + \frac{4}{n^2\pi^2}\sin(n\pi)$$
+      $$= \frac{-6(-1)^n + 2}{n\pi} = \frac{2 + 6(-1)^{n+1}}{n\pi}$$
+      <div class="eq-box">$$\boxed{f(x) \sim \sum_{n=1}^{\infty}\frac{2+6(-1)^{n+1}}{n\pi}\sin\!\left(\frac{n\pi x}{2}\right)}$$</div>
+    </div>
+  </details>
+</div>
+
+<!-- Example 13.2 -->
+<div class="card highlight-left orange" id="ex13-2">
+  <div class="card-label example">範例 13.2 ─ $e^{-x}$ 在 $[-1,1]$</div>
+
+  <details>
+    <summary>完整推導</summary>
+    <div class="inner">
+      <p>$L=1$。</p>
+      <p><strong>$a_0$：</strong> $a_0 = \int_{-1}^{1}e^{-x}\,dx = [-e^{-x}]_{-1}^1 = -e^{-1}+e = e - 1/e$</p>
+      <p><strong>$a_n$：</strong>用 $\int e^{-x}\cos(n\pi x)\,dx = \frac{e^{-x}(-\cos(n\pi x)+n\pi\sin(n\pi x))}{1+n^2\pi^2}$：</p>
+      $$a_n = \int_{-1}^{1}e^{-x}\cos(n\pi x)\,dx = \frac{1}{1+n^2\pi^2}\left[e^{-x}(-\cos(n\pi x)+n\pi\sin(n\pi x))\right]_{-1}^1$$
+      $$= \frac{1}{1+n^2\pi^2}\left[-e^{-1}(-1)^n - (-e\cdot(-1)^n)\right] = \frac{(-1)^n(e-1/e)}{1+n^2\pi^2}$$
+      <p><strong>$b_n$：</strong>類似地用 $\int e^{-x}\sin(n\pi x)\,dx$：</p>
+      $$b_n = \int_{-1}^{1}e^{-x}\sin(n\pi x)\,dx = \frac{(-1)^n n\pi(e - 1/e)}{1+n^2\pi^2}$$
+      <div class="eq-box">$$\boxed{e^{-x} \sim \frac{1}{2}(e-\tfrac{1}{e}) + (e-\tfrac{1}{e})\sum_{n=1}^{\infty}\frac{(-1)^n}{1+n^2\pi^2}\left[\cos(n\pi x)+n\pi\sin(n\pi x)\right]}$$</div>
+      <p>在 $(-1,1)$ 收斂至 $e^{-x}$。端點收斂至 $\frac{1}{2}(f(-1^+)+f(1^-)) = \frac{1}{2}(e+e^{-1})$。</p>
+    </div>
+  </details>
+</div>
+
+<!-- 13.1.1 Even/Odd -->
+<h3 id="even-odd">13.1.1 偶函數與奇函數的傅立葉級數</h3>
+
+<div class="card highlight-left pink">
+  <div class="card-label note">偶函數 / 奇函數簡化規則</div>
+  <p><strong>偶函數</strong> $g(-x)=g(x)$：$b_n = 0$，傅立葉級數<strong>只含餘弦項</strong>。</p>
+  <p><strong>奇函數</strong> $g(-x)=-g(x)$：$a_n = 0$，傅立葉級數<strong>只含正弦項</strong>。</p>
+  <p>積分簡化：偶函數 $\int_{-L}^{L}g\,dx = 2\int_0^L g\,dx$；奇函數 $\int_{-L}^{L}g\,dx = 0$。</p>
+  <p>乘積規則：偶×偶 = 偶，奇×奇 = 偶，偶×奇 = 奇。</p>
+</div>
+
+<!-- Example 13.3 -->
+<div class="card highlight-left orange" id="ex13-3">
+  <div class="card-label example">範例 13.3 ─ $x^2$ 在 $[-3,3]$（偶函數）</div>
+
+  <details>
+    <summary>完整推導</summary>
+    <div class="inner">
+      <p>$L=3$。$x^2$ 為偶函數 → $b_n = 0$，且 $a_n = \frac{2}{3}\int_0^3 x^2\cos(n\pi x/3)\,dx$。</p>
+      <p><strong>$a_0$：</strong> $a_0 = \frac{2}{3}\int_0^3 x^2\,dx = \frac{2}{3}\cdot 9 = 6$</p>
+      <p><strong>$a_n$（$n \ge 1$）：</strong>兩次分部積分：</p>
+      $$\int_0^3 x^2\cos\!\left(\frac{n\pi x}{3}\right)dx = \left[\frac{3x^2}{n\pi}\sin\!\left(\frac{n\pi x}{3}\right)\right]_0^3 + \frac{6}{n\pi}\int_0^3 x\cdot\left(-\sin\!\left(\frac{n\pi x}{3}\right)\right)\cdot\frac{1}{1}\,dx$$
+      <p>第一項：$x=3$ 時 $\sin(n\pi)=0$，故為 $0$。</p>
+      <p>繼續對 $\int x\sin(n\pi x/3)\,dx$ 分部積分：</p>
+      $$= \frac{6}{n\pi}\left[\frac{3x}{n\pi}\cos\!\left(\frac{n\pi x}{3}\right)\Big|_0^3 - \frac{3}{n\pi}\int_0^3\cos\!\left(\frac{n\pi x}{3}\right)dx\right] = \frac{6}{n\pi}\cdot\frac{9(-1)^n}{n\pi} = \frac{54(-1)^n}{n^2\pi^2}$$
+      $$a_n = \frac{2}{3}\cdot\frac{54(-1)^n}{n^2\pi^2} = \frac{36(-1)^n}{n^2\pi^2}$$
+      <div class="eq-box">$$\boxed{x^2 \sim 3 + \sum_{n=1}^{\infty}\frac{36(-1)^n}{n^2\pi^2}\cos\!\left(\frac{n\pi x}{3}\right)}$$</div>
+      <p>端點 $f(-3^+)=f(3^-)=9$，$\frac{1}{2}(9+9)=9=f(\pm 3)$，整個 $[-3,3]$ 收斂至 $x^2$。</p>
+    </div>
+  </details>
+</div>
+
+<!-- 13.1.2 Gibbs -->
+<h3 id="gibbs">13.1.2 Gibbs 現象</h3>
+
+<div class="card highlight-left pink">
+  <div class="card-label note">Gibbs 現象</div>
+  <p>在函數跳躍不連續點附近，傅立葉級數的部分和會出現<strong>近乎恆定振幅的「凸起」</strong>。隨項數增加，凸起不會消失，但會<strong>移向不連續點</strong>。</p>
+  <p>此現象由 J. W. Gibbs 於 20 世紀初給出數學分析，稱為 <strong>Gibbs 現象</strong>。</p>
+  <p>例：$f(x) = \begin{cases}-\pi/4 & -\pi \le x < 0 \\ \pi/4 & 0 < x \le \pi\end{cases}$ 的傅立葉級數為 $\displaystyle\sum_{n=1}^{\infty}\frac{\sin((2n-1)x)}{2n-1}$。</p>
+</div>
+
+<!-- 13.1 Problems -->
+<h3 id="prob-13-1">Section 13.1 習題</h3>
+<p><strong>1–12：寫出傅立葉級數並求和</strong></p>
+<div class="problem-list">
+  <div class="problem-item">$f(x)=4$, $-3\le x\le 3$</div>
+  <div class="problem-item">$f(x)=-x$, $-1\le x\le 1$</div>
+  <div class="problem-item">$f(x)=\cosh(\pi x)$, $-1\le x\le 1$</div>
+  <div class="problem-item">$f(x)=1-|x|$, $-2\le x\le 2$</div>
+  <div class="problem-item">$f(x)=\begin{cases}-4 & -\pi\le x\le 0 \\ 4 & 0<x\le\pi\end{cases}$</div>
+  <div class="problem-item">$f(x)=\sin(2x)$, $-\pi\le x\le\pi$</div>
+  <div class="problem-item">$f(x)=x^2-x+3$, $-2\le x\le 2$</div>
+  <div class="problem-item">$f(x)=\begin{cases}-x & -5\le x<0 \\ 1+x^2 & 0\le x\le 5\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}1 & -\pi\le x<0 \\ 2 & 0\le x\le\pi\end{cases}$</div>
+  <div class="problem-item">$f(x)=\cos(x/2)-\sin(x)$, $-\pi\le x\le\pi$</div>
+  <div class="problem-item">$f(x)=\cos(x)$, $-3\le x\le 3$</div>
+  <div class="problem-item">$f(x)=\begin{cases}1-x & -1\le x\le 0 \\ 0 & 0<x\le 1\end{cases}$</div>
+</div>
+<p style="margin-top:16px;"><strong>13–19：判斷收斂和（無需求出級數）</strong></p>
+<div class="problem-list" style="counter-reset: prob 12;">
+  <div class="problem-item">$f(x)=\begin{cases}2x & -3\le x<-2 \\ 0 & -2\le x<1 \\ x^2 & 1\le x\le 3\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}2x-2 & -\pi\le x<1 \\ 3 & 1<x\le\pi\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}x^2 & -\pi\le x\le 0 \\ 2 & 0<x\le\pi\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}\cos(x) & -2\le x<0 \\ \sin(x) & 0\le x\le 2\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}-1 & -4\le x<0 \\ 1 & 0\le x\le 4\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}0 & -1\le x<1/2 \\ 1 & 1/2\le x\le 3/4 \\ 2 & 3/4<x\le 1\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}-2 & -4\le x\le -2 \\ 1+x^2 & -2<x\le 2 \\ 0 & 2<x\le 4\end{cases}$</div>
+</div>
+<p style="margin-top:16px;"><strong>20–21：Gibbs 現象觀察</strong></p>
+
+<!-- ═══════════════ 13.2 ═══════════════ -->
+<h2 id="s13-2"><span class="sec-num">13.2</span> 正弦與餘弦級數 (Sine and Cosine Series)</h2>
+
+<p>在「半區間」$[0,L]$ 上，可分別展開為純正弦級數或純餘弦級數。</p>
+
+<h3>傅立葉正弦級數</h3>
+
+<div class="card highlight-left">
+  <div class="card-label thm">正弦級數與係數</div>
+  <div class="eq-box"><span class="eq-label">(13.10)</span>
+  $$f(x) \sim \sum_{n=1}^{\infty}B_n\sin\!\left(\frac{n\pi x}{L}\right)$$
+  </div>
+  <div class="eq-box"><span class="eq-label">(13.11)</span>
+  $$B_n = \frac{2}{L}\int_0^L f(x)\sin\!\left(\frac{n\pi x}{L}\right)dx, \quad n=1,2,\dots$$
+  </div>
+</div>
+
+<div class="card highlight-left" id="thm13-2">
+  <div class="card-label thm">定理 13.2 ─ 正弦級數收斂性</div>
+  <p>$f$ 在 $[0,L]$ 分段平滑。在 $0 < x < L$ 收斂至 $\frac{1}{2}(f(x^-)+f(x^+))$。</p>
+  <p>在 $x=0$ 和 $x=L$：<strong>收斂至 $0$</strong>（因所有正弦項在端點為零）。</p>
+</div>
+
+<div class="card highlight-left orange" id="ex13-4">
+  <div class="card-label example">範例 13.4 ─ $e^{2x}$ 在 $[0,1]$ 的正弦展開</div>
+
+  <details>
+    <summary>完整推導</summary>
+    <div class="inner">
+      <p>$L=1$，$B_n = 2\int_0^1 e^{2x}\sin(n\pi x)\,dx$。</p>
+      <p>用公式 $\int e^{ax}\sin(bx)\,dx = \frac{e^{ax}(a\sin(bx)-b\cos(bx))}{a^2+b^2}$，取 $a=2$，$b=n\pi$：</p>
+      $$B_n = 2\left[\frac{e^{2x}(2\sin(n\pi x)-n\pi\cos(n\pi x))}{4+n^2\pi^2}\right]_0^1$$
+      $$= \frac{2}{4+n^2\pi^2}\left[e^2(0-n\pi(-1)^n) - (0-n\pi)\right] = \frac{2}{4+n^2\pi^2}\left[-n\pi(-1)^n e^2 + n\pi\right]$$
+      <div class="eq-box">$$\boxed{B_n = \frac{2n\pi(1-(-1)^n e^2)}{4+n^2\pi^2}}$$</div>
+      <p>收斂至 $\begin{cases}e^{2x} & 0 < x < 1 \\ 0 & x=0,\;x=1\end{cases}$</p>
+    </div>
+  </details>
+</div>
+
+<h3>傅立葉餘弦級數</h3>
+
+<div class="card highlight-left">
+  <div class="card-label thm">餘弦級數與係數</div>
+  <div class="eq-box"><span class="eq-label">(13.12)</span>
+  $$f(x) \sim \frac{A_0}{2} + \sum_{n=1}^{\infty}A_n\cos\!\left(\frac{n\pi x}{L}\right)$$
+  </div>
+  <div class="eq-box"><span class="eq-label">(13.13)</span>
+  $$A_n = \frac{2}{L}\int_0^L f(x)\cos\!\left(\frac{n\pi x}{L}\right)dx, \quad n=0,1,2,\dots$$
+  </div>
+</div>
+
+<div class="card highlight-left" id="thm13-3">
+  <div class="card-label thm">定理 13.3 ─ 餘弦級數收斂性</div>
+  <p>$f$ 在 $[0,L]$ 分段平滑。在 $0 < x < L$ 收斂至 $\frac{1}{2}(f(x^-)+f(x^+))$。</p>
+  <p>$x=0$ 收斂至 $f(0^+)$；$x=L$ 收斂至 $f(L^-)$。</p>
+</div>
+
+<div class="card highlight-left orange" id="ex13-5">
+  <div class="card-label example">範例 13.5 ─ $e^{2x}$ 在 $[0,1]$ 的餘弦展開</div>
+
+  <details>
+    <summary>完整推導</summary>
+    <div class="inner">
+      <p>$L=1$，$A_n = 2\int_0^1 e^{2x}\cos(n\pi x)\,dx$。</p>
+      <p><strong>$A_0$：</strong> $A_0 = 2\int_0^1 e^{2x}\,dx = 2\cdot\frac{e^2-1}{2} = e^2 - 1$</p>
+      <p><strong>$A_n$（$n \ge 1$）：</strong>用 $\int e^{ax}\cos(bx)\,dx = \frac{e^{ax}(a\cos(bx)+b\sin(bx))}{a^2+b^2}$，取 $a=2$，$b=n\pi$：</p>
+      $$A_n = 2\left[\frac{e^{2x}(2\cos(n\pi x)+n\pi\sin(n\pi x))}{4+n^2\pi^2}\right]_0^1 = \frac{2}{4+n^2\pi^2}\left[2e^2(-1)^n - 2\right]$$
+      <div class="eq-box">$$\boxed{A_n = \frac{4(e^2(-1)^n - 1)}{4+n^2\pi^2}}$$</div>
+      $$e^{2x} = \frac{e^2-1}{2} + \sum_{n=1}^{\infty}\frac{4(e^2(-1)^n-1)}{4+n^2\pi^2}\cos(n\pi x)$$
+      <p>由定理 13.3：$x=0$ 收斂至 $f(0^+)=1$ ✓，$x=1$ 收斂至 $f(1^-)=e^2$ ✓。整個 $[0,1]$ 收斂。</p>
+    </div>
+  </details>
+</div>
+
+<!-- 13.2 Problems -->
+<h3 id="prob-13-2">Section 13.2 習題</h3>
+<p><strong>1–10：寫出正弦與餘弦級數並求收斂值</strong></p>
+<div class="problem-list">
+  <div class="problem-item">$f(x)=4$, $[0,3]$</div>
+  <div class="problem-item">分段函數, $[0,2]$</div>
+  <div class="problem-item">分段函數, $[0,2\pi]$</div>
+  <div class="problem-item">$f(x)=2x$, $[0,1]$</div>
+  <div class="problem-item">$f(x)=x^2$, $[0,2]$</div>
+  <div class="problem-item">$f(x)=e^{-x}$, $0\le x\le 1$</div>
+  <div class="problem-item">$f(x)=\begin{cases}x & 0\le x\le 2 \\ 2-x & 2<x\le 3\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}1 & 0\le x<1 \\ 0 & 1\le x\le 3 \\ -1 & 3<x\le 5\end{cases}$</div>
+  <div class="problem-item">$f(x)=\begin{cases}x^2 & 0\le x<1 \\ 1 & 1\le x\le 4\end{cases}$</div>
+  <div class="problem-item">$f(x)=1-x^3$, $0\le x\le 2$</div>
+  <div class="problem-item">求 $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^n}{4n^2-1}$（提示：展開 $\sin(x)$ 為 $[0,\pi]$ 上餘弦級數）</div>
+  <div class="problem-item">用奇延拓 $G_o(x) = \begin{cases}g(x) & 0\le x\le L \\ -g(-x) & -L\le x<0\end{cases}$ 推導正弦展開</div>
+  <div class="problem-item">用偶延拓 $G_e(x) = \begin{cases}g(x) & 0\le x\le L \\ g(-x) & -L\le x<0\end{cases}$ 推導餘弦展開</div>
+</div>
+
+<!-- ═══════════════ 13.3 ═══════════════ -->
+<h2 id="s13-3"><span class="sec-num">13.3</span> 傅立葉級數的積分與微分</h2>
+
+<div class="card highlight-left pink">
+  <div class="card-label note">核心觀念</div>
+  <p>逐項積分<strong>幾乎永遠可以做</strong>（條件超寬鬆）。逐項微分<strong>經常出事</strong>（條件嚴格）。這個不對稱性是考試重點。</p>
+</div>
+
+<!-- ─── 先看反例：為什麼微分會爆 ─── -->
+<h3>為什麼逐項微分危險？</h3>
+
+<div class="card highlight-left orange">
+  <div class="card-label example">範例 13.6 ─ 逐項微分的災難</div>
+  <p>$f(x) = x$ 在 $[-\pi,\pi]$ 上的傅立葉級數：</p>
+  <div class="eq-box">$$x = \sum_{n=1}^{\infty}\frac{2(-1)^{n+1}}{n}\sin(nx), \quad -\pi < x < \pi$$</div>
+  <p>如果天真地逐項微分（對每一項取導數）：</p>
+  <div class="eq-box">$$\frac{d}{dx}\left[\frac{2(-1)^{n+1}}{n}\sin(nx)\right] = 2(-1)^{n+1}\cos(nx)$$</div>
+  <p>得到級數 $\sum_{n=1}^{\infty}2(-1)^{n+1}\cos(nx)$。</p>
+  <p>但 $f'(x) = 1$，而這個級數的通項 $2(-1)^{n+1}\cos(nx)$ 不趨向零，所以<strong>級數根本不收斂</strong>，更不用說等於 $1$。</p>
+
+  <details>
+    <summary>為什麼會爆？</summary>
+    <div class="inner">
+      <p>問題出在 $f(-\pi) = -\pi \neq \pi = f(\pi)$。左右端點的值不同，傅立葉級數在端點收斂至 $\frac{1}{2}(-\pi+\pi) = 0 \neq f(\pm\pi)$。</p>
+      <p>直覺上：傅立葉級數其實是在逼近一個<strong>週期延拓</strong>後的函數。$f(x)=x$ 延拓後在 $\pm\pi$ 處有跳躍，微分把這些跳躍「放大」成不收斂的行為。</p>
+    </div>
+  </details>
+</div>
+
+<!-- ─── 逐項積分 ─── -->
+<h3>逐項積分（條件寬鬆，幾乎永遠成立）</h3>
+
+<div class="card highlight-left" id="thm13-4">
+  <div class="card-label thm">定理 13.4 ─ 逐項積分</div>
+  <p>設 $f$ 在 $[-L,L]$ 上<strong>分段連續</strong>（這是唯一條件！），傅立葉級數為</p>
+  <p>$$\frac{a_0}{2}+\sum_{n=1}^{\infty}\left[a_n\cos\!\left(\frac{n\pi x}{L}\right)+b_n\sin\!\left(\frac{n\pi x}{L}\right)\right]$$</p>
+  <p>則對任何 $x \in [-L,L]$：</p>
+  <div class="eq-box">
+  $$\int_{-L}^{x}f(t)\,dt = \frac{a_0}{2}(x+L) + \frac{L}{\pi}\sum_{n=1}^{\infty}\frac{1}{n}\left[a_n\sin\!\left(\frac{n\pi x}{L}\right) - b_n\!\left(\cos\!\left(\frac{n\pi x}{L}\right)-(-1)^n\right)\right]$$
+  </div>
+  <p>右邊就是把傅立葉級數逐項從 $-L$ 積到 $x$ 得到的結果。</p>
+  <p><strong>重點：即使 $f$ 有跳躍不連續點（級數在那裡不收斂至 $f$），逐項積分仍然成立。</strong></p>
+</div>
+
+<details>
+  <summary>定理 13.4 證明（展開 / 收合）</summary>
+  <div class="inner">
+    <p><strong>證明策略：</strong>構造一個輔助函數 $F(x)$，使它是連續的，然後展開 $F(x)$ 的傅立葉級數。</p>
+
+    <p><strong>Step 1：定義輔助函數</strong></p>
+    $$F(x) = \int_{-L}^{x}f(t)\,dt - \frac{a_0}{2}x$$
+    <p>$F(x)$ 是連續的（因為積分是連續函數），而且：</p>
+    $$F(-L) = -\frac{a_0}{2}(-L) = \frac{a_0 L}{2}$$
+    $$F(L) = \int_{-L}^{L}f(t)\,dt - \frac{a_0}{2}L = La_0 - \frac{a_0 L}{2} = \frac{a_0 L}{2}$$
+    <p>所以 $F(-L) = F(L)$ ✓，且 $F'(x) = f(x) - \frac{a_0}{2}$（$f$ 連續處）→ $F$ 分段平滑。</p>
+
+    <p><strong>Step 2：展開 $F(x)$ 的傅立葉級數</strong></p>
+    <p>$F$ 連續且 $F(-L)=F(L)$，所以它的傅立葉級數收斂至 $F(x)$：</p>
+    $$F(x) = \frac{\alpha_0}{2} + \sum_{n=1}^{\infty}\left[\alpha_n\cos\!\left(\frac{n\pi x}{L}\right) + \beta_n\sin\!\left(\frac{n\pi x}{L}\right)\right]$$
+
+    <p><strong>Step 3：用分部積分把 $F$ 的係數 $\alpha_n, \beta_n$ 關聯到 $f$ 的係數 $a_n, b_n$</strong></p>
+    $$\alpha_n = \frac{1}{L}\int_{-L}^{L}F(t)\cos\!\left(\frac{n\pi t}{L}\right)dt$$
+    <p>分部積分（$u = F(t)$，$dv = \cos(n\pi t/L)\,dt$），邊界項因 $\sin(n\pi)=\sin(-n\pi)=0$ 而消失：</p>
+    $$\alpha_n = -\frac{1}{n\pi}\int_{-L}^{L}F'(t)\sin\!\left(\frac{n\pi t}{L}\right)dt = -\frac{1}{n\pi}\int_{-L}^{L}\left(f(t)-\frac{a_0}{2}\right)\sin\!\left(\frac{n\pi t}{L}\right)dt$$
+    <p>$\int \frac{a_0}{2}\sin(\cdot)\,dt = 0$（完整週期），所以：</p>
+    <div class="eq-box">$$\alpha_n = -\frac{L}{n\pi}b_n$$</div>
+    <p>類似地：</p>
+    <div class="eq-box">$$\beta_n = \frac{L}{n\pi}a_n$$</div>
+
+    <p><strong>Step 4：代回並整理</strong></p>
+    <p>把 $\alpha_n$ 和 $\beta_n$ 代入 $F(x)$ 的傅立葉級數，再用 $F(x) = \int_{-L}^{x}f(t)\,dt - \frac{a_0}{2}x$ 還原，就得到定理的結論。$\alpha_0$ 可由 $F(L)$ 的值確定。</p>
+  </div>
+</details>
+
+<div class="card highlight-left orange" style="margin-top:16px;">
+  <div class="card-label example">範例 13.7 ─ 逐項積分驗證</div>
+  <p>$f(x) = x$ 在 $[-\pi,\pi]$：$f(x) = \sum_{n=1}^{\infty}\frac{2(-1)^{n+1}}{n}\sin(nx)$</p>
+
+  <details>
+    <summary>完整推導</summary>
+    <div class="inner">
+      <p>雖然逐項微分失敗了，但逐項積分完全合法（$f$ 連續 → 分段連續 ✓）：</p>
+      $$\int_{-\pi}^{x}t\,dt = \frac{x^2 - \pi^2}{2} = \sum_{n=1}^{\infty}\frac{2(-1)^{n+1}}{n}\int_{-\pi}^{x}\sin(nt)\,dt$$
+      $$= \sum_{n=1}^{\infty}\frac{2(-1)^{n+1}}{n}\left[-\frac{\cos(nx)}{n}+\frac{\cos(n\pi)}{n}\right] = \sum_{n=1}^{\infty}\frac{2(-1)^n}{n^2}\left(\cos(nx) - (-1)^n\right)$$
+      <p>可以驗證這個級數確實等於 $\frac{x^2-\pi^2}{2}$。</p>
+      <p>注意：積分後係數多了 $1/n$ 因子（$\frac{2}{n} \to \frac{2}{n^2}$），級數收斂性<strong>變更好</strong>。這就是積分比微分安全的原因。</p>
+    </div>
+  </details>
+</div>
+
+<!-- ─── 逐項微分 ─── -->
+<h3>逐項微分（條件嚴格，三個缺一不可）</h3>
+
+<div class="card highlight-left" id="thm13-5">
+  <div class="card-label thm">定理 13.5 ─ 逐項微分</div>
+  <p>需要<strong>同時滿足三個條件</strong>：</p>
+  <p>① $f$ 在 $[-L,L]$ 上<strong>連續</strong></p>
+  <p>② $f(-L) = f(L)$（端點值相等）</p>
+  <p>③ $f'(x)$ 在 $[-L,L]$ 上<strong>連續</strong></p>
+  <p>則：</p>
+  <p>1. 傅立葉級數在整個 $[-L,L]$ 上收斂至 $f(x)$（含端點）。</p>
+  <p>2. 在 $f''(x)$ 存在之處，逐項微分收斂至 $f'(x)$：</p>
+  <div class="eq-box">
+  $$f'(x) = \sum_{n=1}^{\infty}\frac{n\pi}{L}\left[-a_n\sin\!\left(\frac{n\pi x}{L}\right) + b_n\cos\!\left(\frac{n\pi x}{L}\right)\right]$$
+  </div>
+</div>
+
+<div class="card highlight-left pink" style="margin-top:16px;">
+  <div class="card-label note">三個條件的直覺理解</div>
+  <p><strong>① $f$ 連續：</strong>如果 $f$ 有跳躍，微分在跳躍處會產生 $\delta$ 函數，一般傅立葉級數處理不了。</p>
+  <p><strong>② $f(-L) = f(L)$：</strong>傅立葉級數本質上是在逼近一個<strong>週期函數</strong>。如果 $f(-L) \neq f(L)$，週期延拓後在 $\pm L$ 處會產生跳躍（見範例 13.6），微分就會爆掉。</p>
+  <p><strong>③ $f'$ 連續：</strong>如果 $f$ 有尖角（像 $|x|$ 在 $x=0$），$f'$ 在那裡不連續。逐項微分在那個點可能不等於 $f'$，但在其他點仍然有效。</p>
+</div>
+
+<details>
+  <summary>定理 13.5 的證明思路（展開 / 收合）</summary>
+  <div class="inner">
+    <p>思路：直接展開 $f'(x)$ 的傅立葉級數，然後用分部積分把 $f'$ 的係數關聯到 $f$ 的係數。</p>
+
+    <p><strong>Step 1：</strong>$f'$ 連續 → $f'$ 可以展開傅立葉級數。設 $f'$ 的係數為 $\alpha_n, \beta_n$。</p>
+
+    <p><strong>Step 2：</strong>用分部積分關聯係數：</p>
+    $$\alpha_n = \frac{1}{L}\int_{-L}^{L}f'(x)\cos\!\left(\frac{n\pi x}{L}\right)dx$$
+    <p>分部積分（$u=\cos(\cdot)$，$dv=f'(x)\,dx$）：</p>
+    $$= \frac{1}{L}\left[f(x)\cos\!\left(\frac{n\pi x}{L}\right)\right]_{-L}^{L} + \frac{n\pi}{L^2}\int_{-L}^{L}f(x)\sin\!\left(\frac{n\pi x}{L}\right)dx$$
+    <p>邊界項：$f(L)\cos(n\pi) - f(-L)\cos(-n\pi) = 0$（因為 $f(-L)=f(L)$！這就是條件 ② 的用處）</p>
+    <p>所以 $\alpha_n = \frac{n\pi}{L}b_n$。類似地 $\beta_n = -\frac{n\pi}{L}a_n$。</p>
+
+    <p><strong>Step 3：</strong>這表示 $f'$ 的傅立葉級數就是 $f$ 的傅立葉級數逐項微分的結果 ✓</p>
+  </div>
+</details>
+
+<!-- ─── 三個反例 ─── -->
+<h3>三個條件分別失敗的例子</h3>
+
+<div class="card highlight-left orange">
+  <div class="card-label example">條件 ② 失敗：$f(x) = x$ 在 $[-\pi,\pi]$</div>
+  <p>$f$ 連續 ✓，$f'=1$ 連續 ✓，但 $f(-\pi)=-\pi \neq \pi=f(\pi)$ ✗</p>
+  <p>逐項微分得 $\sum 2(-1)^{n+1}\cos(nx)$ → <strong>不收斂</strong>。</p>
+</div>
+
+<div class="card highlight-left orange" style="margin-top:12px;">
+  <div class="card-label example">條件 ③ 失敗：$f(x) = |x|$ 在 $[-1,1]$</div>
+  <p>$f$ 連續 ✓，$f(-1)=f(1)=1$ ✓，但 $f'$ 在 $x=0$ 不連續 ✗</p>
+  <p>逐項微分得 $\frac{4}{\pi}\sum\frac{1}{2m+1}\sin((2m+1)\pi x)$ → 在 $x \neq 0$ 處仍收斂至 $f'(x)$，但<strong>定理不保證</strong>。</p>
+</div>
+
+<div class="card highlight-left orange" style="margin-top:12px;">
+  <div class="card-label example">三個條件全滿足：$f(x) = x^2$ 在 $[-2,2]$</div>
+  <p>$f$ 連續 ✓，$f(-2)=f(2)=4$ ✓，$f'=2x$ 連續 ✓</p>
+  <p>$$x^2 = \frac{4}{3}+\frac{16}{\pi^2}\sum_{n=1}^{\infty}\frac{(-1)^n}{n^2}\cos\!\left(\frac{n\pi x}{2}\right)$$</p>
+  <p>逐項微分：</p>
+  <div class="eq-box">$$f'(x) = 2x = \frac{8}{\pi}\sum_{n=1}^{\infty}\frac{(-1)^{n+1}}{n}\sin\!\left(\frac{n\pi x}{2}\right) \quad \text{for } -2 < x < 2$$</div>
+  <p>這確實是 $2x$ 在 $[-2,2]$ 上的傅立葉級數 ✓</p>
+</div>
+
+<!-- ─── 定理 13.6 ─── -->
+<h3>絕對與均勻收斂</h3>
+
+<div class="card highlight-left" id="thm13-6">
+  <div class="card-label thm">定理 13.6 ─ 絕對與均勻收斂</div>
+  <p>設 $f$ 在 $[-L,L]$ 上連續，$f'$ 分段連續，且 $f(-L)=f(L)$。</p>
+  <p>則傅立葉級數在 $[-L,L]$ 上<strong>絕對且均勻</strong>收斂至 $f(x)$。</p>
+  <p>注意：這裡 $f'$ 只需要<strong>分段連續</strong>（比定理 13.5 的「連續」更弱），但結論也不同 — 這裡只談收斂性，不談逐項微分。</p>
+</div>
+
+<details>
+  <summary>定理 13.6 證明概要（展開 / 收合）</summary>
+  <div class="inner">
+    <p>設 $f$ 的傅立葉係數為 $a_n, b_n$，$f'$ 的傅立葉係數為 $\alpha_n, \beta_n$。</p>
+    <p><strong>Step 1：</strong>由分部積分（同定理 13.5 的證明），因 $f(-L)=f(L)$：</p>
+    $$\alpha_n = \frac{n\pi}{L}b_n, \quad \beta_n = -\frac{n\pi}{L}a_n$$
+
+    <p><strong>Step 2：</strong>利用不等式 $(a-b)^2 \ge 0$ → $2|ab| \le a^2 + b^2$，取 $a = \alpha_n$，$b = 1/n$：</p>
+    $$\frac{|\alpha_n|}{n} \le \frac{1}{2}\alpha_n^2 + \frac{1}{2n^2}$$
+    <p>$\beta_n$ 也有類似不等式。兩式相加：</p>
+    $$|a_n| + |b_n| = \frac{L}{n\pi}(|\beta_n|+|\alpha_n|) \le \frac{L}{2\pi}(\alpha_n^2+\beta_n^2) + \frac{L}{n^2\pi}$$
+
+    <p><strong>Step 3：</strong>由 Bessel 不等式，$\sum(\alpha_n^2+\beta_n^2)$ 收斂。$\sum 1/n^2$ 也收斂。</p>
+    <p>因此 $\sum(|a_n|+|b_n|)$ 收斂 → 傅立葉級數<strong>絕對收斂</strong>。</p>
+
+    <p><strong>Step 4：</strong>因 $|a_n\cos(\cdot)+b_n\sin(\cdot)| \le |a_n|+|b_n|$，由 Weierstrass M-test → <strong>均勻收斂</strong>。</p>
+  </div>
+</details>
+
+<div class="card highlight-left pink" style="margin-top:16px;">
+  <div class="card-label note">積分 vs 微分的本質差異</div>
+  <p><strong>積分讓級數更好：</strong>原本係數是 $O(1/n)$，積分後變 $O(1/n^2)$，收斂更快。</p>
+  <p><strong>微分讓級數更差：</strong>原本係數是 $O(1/n)$，微分後多乘 $n$，變 $O(1)$，可能不收斂。</p>
+  <p>這就是為什麼積分條件寬鬆（分段連續就夠），微分條件嚴格（要三個條件全滿足）。</p>
+</div>
+
+<!-- 13.3 Problems -->
+<h3 id="prob-13-3">Section 13.3 習題</h3>
+<div class="problem-list">
+  <div class="problem-item">$f(x) = \begin{cases}0 & -\pi\le x\le 0 \\ x & 0<x\le\pi\end{cases}$：(a) 展開傅立葉級數 (b) 逐項積分驗證 (c) 直接展開 $\int_{-L}^{x}f(t)\,dt$ 比較</div>
+  <div class="problem-item">$f(x) = |x|$ 在 $[-1,1]$：(a) 展開 (b) 逐項微分得 $f'(x)$ (c) 直接展開 $f'(x)$ 驗證</div>
+  <div class="problem-item">$f(x) = x\sin(x)$ 在 $[-\pi,\pi]$：(a) 展開 (b) 逐項微分得 $\sin(x)+x\cos(x)$ 並證明合法 (c) 直接展開比較</div>
+  <div class="problem-item">$f(x) = x^2$ 在 $[-3,3]$：(a) 展開 (b) 逐項微分得 $2x$ (c) 直接展開 $f'(x)$ 驗證</div>
+  <div class="problem-item">證明定理 13.6：利用 $|a_n|+|b_n| \le \frac{L}{2\pi}(\alpha_n^2+\beta_n^2)+\frac{L}{n^2\pi}$ 及 Weierstrass 定理</div>
+</div>
+
+<!-- ═══════════════ 13.4 ═══════════════ -->
+<!-- ═══════════════ 13.5 ═══════════════ -->
+<h2 id="s13-5"><span class="sec-num">13.5</span> 相角形式 (Phase Angle Form)</h2>
+
+<!-- ─── 動機 ─── -->
+<div class="card highlight-left pink">
+  <div class="card-label note">這節在幹嘛？一句話版本</div>
+  <p>把傅立葉級數的每一項 $a_n\cos(\cdot) + b_n\sin(\cdot)$（兩個函數加起來）合併成一個 $c_n\cos(\cdot + \delta_n)$（一個函數帶相位偏移）。本質上只是<strong>三角恆等式的換寫法</strong>，數學內容完全一樣。</p>
+</div>
+
+<!-- ─── 前置：週期函數 ─── -->
+<h3>前置：週期函數與基本週期</h3>
+
+<div class="card highlight-left green">
+  <div class="card-label def">週期與基本週期</div>
+  <p><strong>週期</strong>：$f(x+p) = f(x)$ 對所有 $x$ 成立 → $p$ 是 $f$ 的一個週期。</p>
+  <p><strong>基本週期</strong>：最小的正數週期。例如 $\cos(x)$ 有週期 $2\pi, 4\pi, 6\pi, \dots$，但基本週期是 $2\pi$。</p>
+  <p>週期 $p$ 的函數，圖形每隔 $p$ 就重複一次。知道 $[-p/2, p/2]$ 上的圖形就知道全部。</p>
+</div>
+
+<!-- ─── 出發點 ─── -->
+<h3>從普通傅立葉級數出發</h3>
+
+<p>設 $f$ 有基本週期 $p$。令 $L = p/2$，則 $f$ 在 $[-L,L] = [-p/2, p/2]$ 上的傅立葉級數是：</p>
+<div class="eq-box">
+$$\frac{a_0}{2} + \sum_{n=1}^{\infty}\left[a_n\cos\!\left(\frac{2n\pi x}{p}\right) + b_n\sin\!\left(\frac{2n\pi x}{p}\right)\right]$$
+</div>
+<p>令 $\omega_0 = \frac{2\pi}{p}$（<strong>基本角頻率</strong>），寫得更簡潔：</p>
+<div class="eq-box">
+$$\frac{a_0}{2} + \sum_{n=1}^{\infty}\left[a_n\cos(n\omega_0 x) + b_n\sin(n\omega_0 x)\right]$$
+</div>
+<p>係數：</p>
+$$a_n = \frac{2}{p}\int_{-p/2}^{p/2}f(x)\cos(n\omega_0 x)\,dx, \quad b_n = \frac{2}{p}\int_{-p/2}^{p/2}f(x)\sin(n\omega_0 x)\,dx$$
+
+<div class="card highlight-left pink" style="margin-top:12px;">
+  <div class="card-label note">重要：積分區間可以任意選</div>
+  <p>因為 $f$ 有週期 $p$，積分可以在<strong>任何長度為 $p$ 的區間</strong> $[\alpha, \alpha+p]$ 上計算，結果都一樣：</p>
+  $$a_n = \frac{2}{p}\int_{\alpha}^{\alpha+p}f(x)\cos(n\omega_0 x)\,dx$$
+  <p>這在函數只給你 $[0, p)$ 上的定義時特別有用（取 $\alpha = 0$）。</p>
+</div>
+
+<div class="card highlight-left orange" style="margin-top:16px;">
+  <div class="card-label example">示範：慢的做法 vs 快的做法</div>
+  <p>$f(x) = x^2$，$0 \le x < 3$，週期 $p = 3$。求 $a_0$。</p>
+
+  <details>
+    <summary>❌ 慢的做法：硬用標準區間 $[-3/2,\; 3/2]$</summary>
+    <div class="inner">
+      <p>標準區間是 $[-p/2, p/2] = [-3/2, 3/2]$，但 $f(x) = x^2$ 只在 $[0,3)$ 上有定義。</p>
+      <p>在 $[-3/2, 0)$ 上需要<strong>週期延拓</strong>：$f(x) = f(x+3) = (x+3)^2$</p>
+      <p>然後拆成兩段積分：</p>
+      $$a_0 = \frac{2}{3}\left[\int_{-3/2}^{0}(x+3)^2\,dx + \int_0^{3/2}x^2\,dx\right]$$
+      <p>第一段：$\int_{-3/2}^{0}(x+3)^2\,dx = \left[\frac{(x+3)^3}{3}\right]_{-3/2}^{0} = \frac{27}{3} - \frac{(3/2)^3}{3} = 9 - \frac{9}{8} = \frac{63}{8}$</p>
+      <p>第二段：$\int_0^{3/2}x^2\,dx = \frac{(3/2)^3}{3} = \frac{9}{8}$</p>
+      $$a_0 = \frac{2}{3}\left[\frac{63}{8}+\frac{9}{8}\right] = \frac{2}{3}\cdot 9 = 6$$
+      <p>要先推導延拓函數、拆兩段、算兩個積分。</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>✅ 快的做法：直接用 $[0, 3)$（取 $\alpha = 0$）</summary>
+    <div class="inner">
+      <p>$f(x) = x^2$ 在 $[0,3)$ 上就是 $x^2$，不用延拓、不用拆段：</p>
+      $$a_0 = \frac{2}{3}\int_0^3 x^2\,dx = \frac{2}{3}\cdot\frac{x^3}{3}\Big|_0^3 = \frac{2}{3}\cdot 9 = 6$$
+      <p>一步到位。</p>
+    </div>
+  </details>
+
+  <p style="margin-top:12px;">答案一樣都是 $6$，但快的做法省了延拓和拆段的功夫。$a_n$ 和 $b_n$ 的計算也是同理，差別更大（因為帶 $\cos$ 和 $\sin$ 的分部積分拆兩段會更痛苦）。</p>
+</div>
+
+<!-- ─── 合併推導 ─── -->
+<h3>核心推導：$a_n\cos + b_n\sin \to c_n\cos(\cdot + \delta_n)$</h3>
+
+<p>目標：找 $c_n$ 和 $\delta_n$ 使得</p>
+<div class="eq-box">
+$$a_n\cos(n\omega_0 x) + b_n\sin(n\omega_0 x) = c_n\cos(n\omega_0 x + \delta_n)$$
+</div>
+
+<details>
+  <summary>推導過程（展開 / 收合）</summary>
+  <div class="inner">
+    <p><strong>Step 1：展開右邊</strong></p>
+    <p>用和角公式 $\cos(A+B) = \cos A\cos B - \sin A\sin B$：</p>
+    $$c_n\cos(n\omega_0 x + \delta_n) = c_n\cos(n\omega_0 x)\cos(\delta_n) - c_n\sin(n\omega_0 x)\sin(\delta_n)$$
+
+    <p><strong>Step 2：比較兩邊</strong></p>
+    <p>左邊 = $a_n\cos(n\omega_0 x) + b_n\sin(n\omega_0 x)$，所以：</p>
+    $$c_n\cos(\delta_n) = a_n \quad \text{...(I)}$$
+    $$-c_n\sin(\delta_n) = b_n \quad \text{...(II)}$$
+    <p>（也就是 $c_n\sin(\delta_n) = -b_n$）</p>
+
+    <p><strong>Step 3：解 $c_n$</strong></p>
+    <p>(I)² + (II)²：</p>
+    $$c_n^2\cos^2(\delta_n) + c_n^2\sin^2(\delta_n) = a_n^2 + b_n^2$$
+    $$c_n^2 = a_n^2 + b_n^2$$
+    <div class="eq-box">$$\boxed{c_n = \sqrt{a_n^2 + b_n^2}}$$</div>
+
+    <p><strong>Step 4：解 $\delta_n$</strong></p>
+    <p>(II) ÷ (I)：</p>
+    $$\frac{c_n\sin(\delta_n)}{c_n\cos(\delta_n)} = \tan(\delta_n) = \frac{-b_n}{a_n}$$
+    <div class="eq-box">$$\boxed{\delta_n = -\arctan\!\left(\frac{b_n}{a_n}\right)} \quad \text{（$a_n \neq 0$ 時）}$$</div>
+  </div>
+</details>
+
+<!-- ─── 最終結果 ─── -->
+<div class="card highlight-left">
+  <div class="card-label thm">相角（諧波）形式</div>
+  <div class="eq-box">
+  $$f(x) \sim \frac{a_0}{2} + \sum_{n=1}^{\infty}c_n\cos(n\omega_0 x + \delta_n)$$
+  </div>
+  <p>其中：</p>
+  <p>$\omega_0 = 2\pi/p$（基本角頻率）</p>
+  <p>$c_n = \sqrt{a_n^2+b_n^2}$（第 $n$ 階<strong>諧波振幅</strong>）</p>
+  <p>$\delta_n = -\arctan(b_n/a_n)$（第 $n$ 階<strong>相角</strong>）</p>
+  <p>$\cos(n\omega_0 x + \delta_n)$ 稱為 $f$ 的第 $n$ 階<strong>諧波 (harmonic)</strong></p>
+</div>
+
+<div class="card highlight-left green" style="margin-top:16px;">
+  <div class="card-label def">振幅頻譜 (Amplitude Spectrum)</div>
+  <p><strong>怎麼畫：</strong>在座標平面上標離散的點，橫軸是頻率，縱軸是振幅。</p>
+  <p>具體來說，所有點的縱軸都<strong>除以 2</strong>：</p>
+  <p>$n = 0$：標點 $(0,\; |c_0|/2)$，其中 $c_0 = a_0$ — 常數項（直流分量）</p>
+  <p>$n = 1, 2, 3, \dots$：標點 $(n\omega_0,\; c_n/2)$，其中 $c_n = \sqrt{a_n^2+b_n^2}$</p>
+  <p>（除以 2 是因為相角形式寫的是 $\frac{a_0}{2} + \sum c_n\cos(\cdots)$，常數項本身就帶 $1/2$，為了一致所以全部除 2）</p>
+  <p style="margin-top:10px;"><strong>怎麼看：</strong>哪個點越高，代表那個頻率對 $f(x)$ 的貢獻越大。</p>
+  <p style="margin-top:10px;"><strong>用途：</strong>在訊號處理中，一個聲音可以分解成不同頻率的成分。振幅頻譜就是把這些成分的「音量」畫出來。例如鋼琴的 A4 音（440 Hz），頻譜上在 440 Hz 處會有最高的點，然後在 880 Hz、1320 Hz 等倍頻處有較小的點（泛音）。</p>
+</div>
+
+<div class="card highlight-left pink" style="margin-top:16px;">
+  <div class="card-label note">為什麼要這樣寫？</div>
+  <p><strong>普通形式</strong> $a_n\cos + b_n\sin$：兩個數（$a_n, b_n$）描述一個頻率。</p>
+  <p><strong>相角形式</strong> $c_n\cos(\cdot+\delta_n)$：一個振幅 $c_n$ + 一個相位 $\delta_n$，物理意義更直觀。</p>
+  <p>$c_n$ 告訴你「這個頻率有多強」，$\delta_n$ 告訴你「這個頻率偏移了多少」。</p>
+  <p>在電機、聲學、訊號處理中，相角形式是標準寫法。</p>
+</div>
+
+<!-- ─── 範例 13.11 ─── -->
+<div class="card highlight-left orange" id="ex13-11">
+  <div class="card-label example">範例 13.11 ─ $f(x)=x^2$, 區間 $0\le x<3$, 週期 $p=3$</div>
+
+  <details>
+    <summary>完整推導</summary>
+    <div class="inner">
+      <p>$p=3$，$\omega_0 = 2\pi/3$。函數只在 $[0,3)$ 上定義，所以用 $\alpha=0$ 在 $[0,3)$ 上積分。</p>
+
+      <p><strong>Step 1：算傅立葉係數</strong></p>
+      <p>$a_0 = \frac{2}{3}\int_0^3 x^2\,dx = \frac{2}{3}\cdot 9 = 6$</p>
+      <p>$a_n = \frac{2}{3}\int_0^3 x^2\cos\!\left(\frac{2n\pi x}{3}\right)dx$</p>
+      <p>兩次分部積分，因 $\cos(2n\pi)=1$，$\sin(2n\pi)=0$：</p>
+      $$a_n = \frac{9}{n^2\pi^2}$$
+      <p>$b_n = \frac{2}{3}\int_0^3 x^2\sin\!\left(\frac{2n\pi x}{3}\right)dx = -\frac{9}{n\pi}$</p>
+
+      <p><strong>Step 2：轉相角形式</strong></p>
+      $$c_n = \sqrt{a_n^2+b_n^2} = \sqrt{\frac{81}{n^4\pi^4}+\frac{81}{n^2\pi^2}} = \frac{9}{n^2\pi^2}\sqrt{1+n^2\pi^2}$$
+      $$\delta_n = -\arctan\!\left(\frac{b_n}{a_n}\right) = -\arctan\!\left(\frac{-9/(n\pi)}{9/(n^2\pi^2)}\right) = -\arctan(-n\pi) = \arctan(n\pi)$$
+
+      <div class="eq-box">$$\boxed{f(x) \sim 3 + \sum_{n=1}^{\infty}\frac{9}{n^2\pi^2}\sqrt{1+n^2\pi^2}\;\cos\!\left(\frac{2n\pi x}{3}+\arctan(n\pi)\right)}$$</div>
+
+      <p><strong>注意：</strong>$f(x)=x^2$ 僅在 $[0,3)$ 成立。週期延拓後在 $[-3/2,0]$ 上 $f(x)=(x+3)^2$，在 $x=0$ 處有跳躍（$f(0^-)=9$，$f(0^+)=0$），所以 $x=0$ 處級數收斂至 $9/2$。</p>
+    </div>
+  </details>
+</div>
+
+<h3 id="prob-13-5">Section 13.5 習題</h3>
+<div class="problem-list">
+  <div class="problem-item">若 $f,g$ 均有週期 $p$，證明 $\alpha f + \beta g$ 也有週期 $p$</div>
+  <div class="problem-item">設 $\alpha > 0$，證明 $g(t)=f(\alpha t)$ 有週期 $p/\alpha$，$h(t)=f(t/\alpha)$ 有週期 $\alpha p$</div>
+  <div class="problem-item">若 $f$ 可微，證明 $f'$ 也有週期 $p$</div>
+  <div class="problem-item">$f(x)=x$, $0\le x<2$, 基本週期 $2$</div>
+  <div class="problem-item">$f(x)=\begin{cases}1 & 0\le x<1 \\ 0 & 1<x<2\end{cases}$, 基本週期 $2$</div>
+  <div class="problem-item">$f(x)=3x^2$, $0\le x<4$, 基本週期 $4$</div>
+  <div class="problem-item">$f(x)=\begin{cases}1+x & 0\le x<3 \\ 2 & 2\le x<4\end{cases}$, 基本週期 $4$</div>
+  <div class="problem-item">$f(x)=\cos(\pi x)$, $0\le x<1$, 基本週期 $1$</div>
+  <div class="problem-item">由圖形 13.15 給定的函數</div>
+  <div class="problem-item">由圖形 13.16 給定的函數</div>
+  <div class="problem-item">由圖形 13.17 給定的函數</div>
+  <div class="problem-item">由圖形 13.18 給定的函數</div>
+</div>
+
+<!-- ═══════════════ 13.6 ═══════════════ -->
+<h2 id="s13-6"><span class="sec-num">13.6</span> 複數傅立葉級數 (Complex Fourier Series)</h2>
+
+<div class="card highlight-left green">
+  <div class="card-label def">Euler 公式回顧</div>
+  <p>$e^{i\theta} = \cos\theta + i\sin\theta$ → $\cos\theta = \frac{1}{2}(e^{i\theta}+e^{-i\theta})$，$\sin\theta = \frac{1}{2i}(e^{i\theta}-e^{-i\theta})$</p>
+  <p>$\overline{e^{ix}} = e^{-ix}$</p>
+</div>
+
+<p>將傅立葉級數中的 $\cos,\sin$ 以複指數取代，令 $\omega_0 = \pi/L$，$d_n = \frac{1}{2}(a_n - ib_n)$：</p>
+
+<div class="card highlight-left">
+  <div class="card-label thm">複數傅立葉級數</div>
+  <div class="eq-box"><span class="eq-label">(13.14)</span>
+  $$f(x) \sim \sum_{n=-\infty}^{\infty}d_n\,e^{in\omega_0 x}$$
+  </div>
+  <div class="eq-box">
+  $$d_n = \frac{1}{2L}\int_{-L}^{L}f(x)\,e^{-in\omega_0 x}\,dx, \quad n = 0, \pm 1, \pm 2, \dots$$
+  </div>
+  <p>可在任何長度為 $2L$ 的區間上積分。傅立葉收斂定理同樣適用。</p>
+</div>
+
+<div class="card highlight-left orange" id="ex13-12">
+  <div class="card-label example">範例 13.12 ─ $f(x)=x$, $-1\le x<1$, 週期 $2$</div>
+
+  <details>
+    <summary>完整推導</summary>
+    <div class="inner">
+      <p>$L=1$，$\omega_0=\pi$。$f$ 為奇函數 → $d_0 = \frac{1}{2}\int_{-1}^{1}x\,dx = 0$。</p>
+      <p><strong>$d_n$（$n \neq 0$）：</strong></p>
+      $$d_n = \frac{1}{2}\int_{-1}^{1}x\,e^{-in\pi x}\,dx$$
+      <p>分部積分，$u=x$，$dv=e^{-in\pi x}\,dx$：</p>
+      $$= \frac{1}{2}\left[\frac{x\,e^{-in\pi x}}{-in\pi}\right]_{-1}^1 + \frac{1}{2in\pi}\int_{-1}^{1}e^{-in\pi x}\,dx$$
+      $$= \frac{1}{2}\left[\frac{e^{-in\pi}}{-in\pi} - \frac{-e^{in\pi}}{-in\pi}\right] + \frac{1}{2in\pi}\cdot\frac{e^{-in\pi x}}{-in\pi}\Big|_{-1}^1$$
+      <p>第二項 $= \frac{1}{2in\pi}\cdot\frac{e^{-in\pi}-e^{in\pi}}{-in\pi} = \frac{-2i\sin(n\pi)}{-2n^2\pi^2} = 0$（因 $\sin(n\pi)=0$）。</p>
+      <p>第一項 $= \frac{1}{-2in\pi}[e^{-in\pi}+e^{in\pi}] = \frac{-2\cos(n\pi)}{2in\pi} = \frac{-(-1)^n}{in\pi} = \frac{i(-1)^n}{n\pi}$</p>
+      <div class="eq-box">$$\boxed{d_n = \frac{i(-1)^n}{n\pi}, \quad f(x) \sim \sum_{\substack{n=-\infty \\ n\neq 0}}^{\infty}\frac{i(-1)^n}{n\pi}e^{in\pi x}}$$</div>
+      <p><strong>轉為實數形式：</strong>配對 $n$ 與 $-n$：</p>
+      $$d_n e^{in\pi x} + d_{-n}e^{-in\pi x} = \frac{i(-1)^n}{n\pi}(e^{in\pi x}-e^{-in\pi x}) = \frac{2(-1)^{n+1}}{n\pi}\sin(n\pi x)$$
+      <p>得 $f(x) = x$ 在 $[-1,1]$ 的實數傅立葉級數。振幅頻譜：$|d_n| = 1/(n\pi)$。</p>
+    </div>
+  </details>
+</div>
+
+<h3 id="prob-13-6">Section 13.6 習題</h3>
+<p><strong>1–7：寫出複數傅立葉級數並畫頻譜</strong></p>
+<div class="problem-list">
+  <div class="problem-item">$f(x)=2x$, $[0,3)$, 週期 3</div>
+  <div class="problem-item">$f(x)=x^2$, $[0,2)$, 週期 2</div>
+  <div class="problem-item">分段函數, 週期 4</div>
+  <div class="problem-item">$f(x)=1-x$, $[0,6)$, 週期 6</div>
+  <div class="problem-item">分段函數 $-1/2$, 週期 4</div>
+  <div class="problem-item">$f(x)=e^{-x}$, $[0,5)$, 週期 5</div>
+  <div class="problem-item">分段三角帳篷函數, 週期 2</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- CONVERGENCE SUMMARY -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div style="margin-top:80px; border-top:2px solid var(--green); padding-top:40px;"></div>
+
+<h1 id="convergence-summary"><span class="ch-num" style="color:var(--green);">★</span> 收斂性總整理</h1>
+<p class="subtitle">所有收斂定理的比較與速查</p>
+
+<!-- ─── 大表 ─── -->
+<div class="card highlight-left green" style="overflow-x:auto;">
+  <div class="card-label def">一覽表：哪個級數在哪裡收斂到什麼</div>
+
+  <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:12px;">
+    <thead>
+      <tr style="border-bottom:2px solid var(--border-active); text-align:left;">
+        <th style="padding:8px 6px; color:var(--accent);">級數類型</th>
+        <th style="padding:8px 6px; color:var(--accent);">區間</th>
+        <th style="padding:8px 6px; color:var(--accent);">內部連續點</th>
+        <th style="padding:8px 6px; color:var(--accent);">內部跳躍點 $x=c$</th>
+        <th style="padding:8px 6px; color:var(--accent);">端點</th>
+        <th style="padding:8px 6px; color:var(--accent);">定理</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 6px;"><strong>特徵函數展開</strong><br>$\sum c_n\varphi_n(x)$</td>
+        <td style="padding:8px 6px;">$[a,b]$</td>
+        <td style="padding:8px 6px;">$f(x)$</td>
+        <td style="padding:8px 6px;">$\frac{1}{2}(f(c^-)+f(c^+))$</td>
+        <td style="padding:8px 6px;">依 BC 而定</td>
+        <td style="padding:8px 6px;">12.3</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 6px;"><strong>傅立葉級數</strong><br>$\frac{a_0}{2}+\sum[a_n\cos+b_n\sin]$</td>
+        <td style="padding:8px 6px;">$[-L,L]$</td>
+        <td style="padding:8px 6px;">$f(x)$</td>
+        <td style="padding:8px 6px;">$\frac{1}{2}(f(c^-)+f(c^+))$</td>
+        <td style="padding:8px 6px;">$\frac{1}{2}(f(-L^+)+f(L^-))$</td>
+        <td style="padding:8px 6px;">12.4 / 13.1</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 6px;"><strong>餘弦級數</strong><br>$\frac{a_0}{2}+\sum a_n\cos$</td>
+        <td style="padding:8px 6px;">$[0,L]$</td>
+        <td style="padding:8px 6px;">$f(x)$</td>
+        <td style="padding:8px 6px;">$\frac{1}{2}(f(c^-)+f(c^+))$</td>
+        <td style="padding:8px 6px;">$x=0$: $f(0^+)$<br>$x=L$: $f(L^-)$</td>
+        <td style="padding:8px 6px;">12.5 / 13.3</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 6px;"><strong>正弦級數</strong><br>$\sum b_n\sin$</td>
+        <td style="padding:8px 6px;">$[0,L]$</td>
+        <td style="padding:8px 6px;">$f(x)$</td>
+        <td style="padding:8px 6px;">$\frac{1}{2}(f(c^-)+f(c^+))$</td>
+        <td style="padding:8px 6px;"><strong>$x=0$: $0$<br>$x=L$: $0$</strong></td>
+        <td style="padding:8px 6px;">12.6 / 13.2</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 6px;"><strong>複數傅立葉級數</strong><br>$\sum d_n e^{in\omega_0 x}$</td>
+        <td style="padding:8px 6px;">$[-L,L]$</td>
+        <td colspan="3" style="padding:8px 6px;">與實數傅立葉級數相同（只是不同表示法）</td>
+        <td style="padding:8px 6px;">13.1</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ─── 關鍵差異 ─── -->
+<div class="card highlight-left pink" style="margin-top:20px;">
+  <div class="card-label note">端點行為是最大差異！考試必考</div>
+  <p><strong>正弦級數</strong>端點一定收斂至 <strong>$0$</strong>（因為 $\sin(0)=\sin(n\pi)=0$）。</p>
+  <p><strong>餘弦級數</strong>端點收斂至函數的<strong>單側極限值</strong>（$f(0^+)$ 和 $f(L^-)$）。</p>
+  <p><strong>完整傅立葉級數</strong>在端點收斂至<strong>兩端的平均</strong> $\frac{1}{2}(f(-L^+)+f(L^-))$。</p>
+  <p>所有類型在<strong>內部連續點</strong>都收斂至 $f(x)$，在<strong>跳躍處</strong>都收斂至左右極限的平均。</p>
+</div>
+
+<!-- ─── 逐項操作 ─── -->
+<h3 style="margin-top:36px;">逐項積分 vs 逐項微分</h3>
+
+<div class="card highlight-left" style="overflow-x:auto;">
+  <div class="card-label thm">操作條件比較</div>
+
+  <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:12px;">
+    <thead>
+      <tr style="border-bottom:2px solid var(--border-active); text-align:left;">
+        <th style="padding:8px 6px; color:var(--accent);">操作</th>
+        <th style="padding:8px 6px; color:var(--accent);">條件</th>
+        <th style="padding:8px 6px; color:var(--accent);">結論</th>
+        <th style="padding:8px 6px; color:var(--accent);">定理</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 6px;"><strong>逐項積分</strong></td>
+        <td style="padding:8px 6px;">$f$ 分段連續（<strong>超寬鬆</strong>）</td>
+        <td style="padding:8px 6px;">$\int_{-L}^{x}f(t)\,dt$ = 逐項積分結果，對所有 $x \in [-L,L]$</td>
+        <td style="padding:8px 6px;">13.4</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 6px;"><strong>逐項微分</strong></td>
+        <td style="padding:8px 6px;">$f$ <strong>連續</strong> + $f(-L)=f(L)$ + $f'$ <strong>連續</strong></td>
+        <td style="padding:8px 6px;">逐項微分收斂至 $f'(x)$（在 $f''$ 存在處）</td>
+        <td style="padding:8px 6px;">13.5</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 6px;"><strong>絕對均勻收斂</strong></td>
+        <td style="padding:8px 6px;">$f$ <strong>連續</strong> + $f(-L)=f(L)$ + $f'$ <strong>分段連續</strong></td>
+        <td style="padding:8px 6px;">傅立葉級數絕對且均勻收斂至 $f(x)$</td>
+        <td style="padding:8px 6px;">13.6</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card highlight-left pink" style="margin-top:16px;">
+  <div class="card-label note">考試陷阱：逐項微分三個條件缺一不可</div>
+  <p>範例：$f(x)=x$ 在 $[-\pi,\pi]$。$f$ 連續 ✓，$f'=1$ 連續 ✓，但 $f(-\pi)=-\pi \neq \pi = f(\pi)$ ✗。逐項微分後的級數 $\sum 2(-1)^{n+1}\cos(nx)$ <strong>根本不收斂</strong>。</p>
+  <p>範例：$f(x)=|x|$ 在 $[-1,1]$。$f$ 連續 ✓，$f(-1)=f(1)=1$ ✓，但 $f'$ 在 $x=0$ 不連續 ✗。但逐項微分在 $x\neq 0$ 處仍然有效。</p>
+</div>
+
+<!-- ─── Bessel / Parseval ─── -->
+<h3 style="margin-top:36px;">Bessel 不等式 vs Parseval 等式</h3>
+
+<div class="card highlight-left" style="overflow-x:auto;">
+  <div class="card-label thm">能量守恆觀點</div>
+
+  <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:12px;">
+    <thead>
+      <tr style="border-bottom:2px solid var(--border-active); text-align:left;">
+        <th style="padding:8px 6px; color:var(--accent);"></th>
+        <th style="padding:8px 6px; color:var(--accent);">公式</th>
+        <th style="padding:8px 6px; color:var(--accent);">條件</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 6px;"><strong>Bessel 不等式</strong></td>
+        <td style="padding:8px 6px;">$\frac{1}{2}a_0^2 + \sum(a_n^2+b_n^2) \;\le\; \frac{1}{L}\int_{-L}^{L}f^2\,dx$</td>
+        <td style="padding:8px 6px;">$\int f^2$ 存在即可</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 6px;"><strong>Parseval 等式</strong></td>
+        <td style="padding:8px 6px;">$\frac{1}{2}a_0^2 + \sum(a_n^2+b_n^2) \;=\; \frac{1}{L}\int_{-L}^{L}f^2\,dx$</td>
+        <td style="padding:8px 6px;">$f$ 連續 + $f'$ 分段連續 + $f(-L)=f(L)$</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin-top:10px;">意義：Parseval 等式表示「函數的能量 = 各頻率分量能量的總和」，是<strong>能量守恆</strong>。Bessel 不等式表示有限項只能捕捉到部分能量。</p>
+</div>
+
+<!-- ─── 速查流程圖 ─── -->
+<h3 style="margin-top:36px;">考試速查：拿到題目後的判斷流程</h3>
+
+<div class="card highlight-left" style="border-left-color:var(--green);">
+  <div class="card-label def">Step-by-Step</div>
+  <p><strong>1. 看區間和邊界條件 → 決定級數類型</strong></p>
+  <p>$[-L,L]$ + 週期性 BC → 完整傅立葉級數</p>
+  <p>$[0,L]$ + $y(0)=y(L)=0$ → 正弦級數</p>
+  <p>$[0,L]$ + $y'(0)=y'(L)=0$ → 餘弦級數</p>
+  <p>其他 BC → 一般特徵函數展開（先解 S-L 問題）</p>
+
+  <p style="margin-top:12px;"><strong>2. 判斷奇偶性 → 簡化計算</strong></p>
+  <p>偶函數 → $b_n = 0$，只算 $a_n$，積分範圍減半</p>
+  <p>奇函數 → $a_n = 0$，只算 $b_n$，積分範圍減半</p>
+
+  <p style="margin-top:12px;"><strong>3. 判斷收斂 → 套公式</strong></p>
+  <p>連續點 → $f(x)$（直接帶入）</p>
+  <p>跳躍點 → $\frac{1}{2}(f(c^-)+f(c^+))$</p>
+  <p>端點 → 看級數類型（正弦=0，餘弦=單側極限，完整=兩端平均）</p>
+
+  <p style="margin-top:12px;"><strong>4. 逐項微分題 → 先檢查三條件</strong></p>
+  <p>$f$ 連續？$f(-L)=f(L)$？$f'$ 連續？缺任何一個就不能直接用定理 13.5。</p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- EXAM APPENDIX -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div style="margin-top:80px; border-top:2px solid var(--orange); padding-top:40px;"></div>
+
+<h1 id="exam"><span class="ch-num" style="color:var(--orange);">附錄</span> 2024 春季期中考古題</h1>
+<p class="subtitle">Engineering Mathematics 2 — First Midterm, 2024/3/29（Closed Book, 110 min）</p>
+
+<!-- ═══ Q1 ═══ -->
+<div class="card highlight-left orange" id="exam-q1">
+  <div class="card-label example">第 1 題（20%）─ S-L 分類與特徵值</div>
+  <p><strong>題目：</strong>分類 S-L 問題並求特徵值與特徵函數。</p>
+  <div class="eq-box">$$(e^{2x}y')' + \lambda e^{2x}y = 0, \quad y(0)=y(\pi)=0, \quad \lambda > 1$$</div>
+</div>
+
+<details>
+  <summary>Q1 解答</summary>
+  <div class="inner">
+    <p><strong>Step 1：辨認標準形式</strong></p>
+    <p>與 $(ry')' + (q+\lambda p)y = 0$ 比較：$r(x) = e^{2x}$，$q(x) = 0$，$p(x) = e^{2x}$。</p>
+    <p>$r(x) = e^{2x} > 0$，$p(x) = e^{2x} > 0$ 在 $[0,\pi]$ 上。邊界條件 $y(0)=0$，$y(\pi)=0$ 為正規邊界條件。</p>
+    <p><strong>分類：正規 (Regular) S-L 問題。</strong></p>
+
+    <p><strong>Step 2：求解</strong></p>
+    <p>展開 $(e^{2x}y')' = e^{2x}y'' + 2e^{2x}y'$，除以 $e^{2x}$：</p>
+    $$y'' + 2y' + \lambda y = 0$$
+    <p>特徵方程 $r^2 + 2r + \lambda = 0$ → $r = -1 \pm \sqrt{1-\lambda}$。</p>
+    <p>因 $\lambda > 1$，令 $\lambda - 1 = k^2$（$k > 0$），得 $r = -1 \pm ik$。</p>
+    $$y(x) = e^{-x}(c_1\cos(kx) + c_2\sin(kx))$$
+
+    <p><strong>Step 3：代入邊界條件</strong></p>
+    <p>$y(0) = c_1 = 0$ → $y(x) = c_2 e^{-x}\sin(kx)$。</p>
+    <p>$y(\pi) = c_2 e^{-\pi}\sin(k\pi) = 0$。取 $c_2 \neq 0$ → $\sin(k\pi) = 0$ → $k = n$（$n = 1,2,3,\dots$）。</p>
+
+    <div class="eq-box">
+    $$\boxed{\lambda_n = 1 + n^2, \quad \varphi_n(x) = e^{-x}\sin(nx), \quad n = 1, 2, 3, \dots}$$
+    </div>
+  </div>
+</details>
+
+<!-- ═══ Q2 ═══ -->
+<div class="card highlight-left orange" id="exam-q2">
+  <div class="card-label example">第 2 題（20%）─ 特徵函數展開</div>
+  <p><strong>題目：</strong>展開 $f(x)=1-x$（$0 \le x \le 2$）為下列 S-L 問題的特徵函數級數。</p>
+  <div class="eq-box">$$y'' + \lambda y = 0, \quad y(0)=y(2)=0$$</div>
+</div>
+
+<details>
+  <summary>Q2 解答</summary>
+  <div class="inner">
+    <p><strong>Step 1：特徵值與特徵函數</strong></p>
+    <p>標準問題，$r=1$，$p=1$，$q=0$。由範例 12.1：</p>
+    $$\lambda_n = \left(\frac{n\pi}{2}\right)^2, \quad \varphi_n(x) = \sin\!\left(\frac{n\pi x}{2}\right), \quad n=1,2,\dots$$
+
+    <p><strong>Step 2：求係數</strong></p>
+    <p>權重函數 $p(x)=1$，用公式 (12.6)：</p>
+    $$c_n = \frac{\int_0^2 (1-x)\sin(n\pi x/2)\,dx}{\int_0^2 \sin^2(n\pi x/2)\,dx}$$
+
+    <p>分母：$\int_0^2 \sin^2(n\pi x/2)\,dx = 1$。</p>
+
+    <p>分子：分部積分</p>
+    $$\int_0^2 (1-x)\sin\!\left(\frac{n\pi x}{2}\right)dx = \left[-(1-x)\frac{2}{n\pi}\cos\!\left(\frac{n\pi x}{2}\right)\right]_0^2 - \int_0^2 \frac{2}{n\pi}\cos\!\left(\frac{n\pi x}{2}\right)dx$$
+    $$= \frac{2}{n\pi}\cos(n\pi) + \frac{2}{n\pi} - \frac{4}{n^2\pi^2}\sin(n\pi) = \frac{2}{n\pi}((-1)^n + 1)$$
+
+    <div class="eq-box">
+    $$\boxed{c_n = \frac{2}{n\pi}((-1)^n + 1), \quad 1-x = \sum_{n=1}^{\infty}\frac{2((-1)^n+1)}{n\pi}\sin\!\left(\frac{n\pi x}{2}\right)}$$
+    </div>
+
+    <div class="card highlight-left pink" style="margin-top:8px;">
+      <div class="card-label note">注意</div>
+      <p>$n$ 為奇數時 $(-1)^n+1=0$，所以只有<strong>偶數項</strong>存在：$c_{2m} = \frac{4}{2m\pi} = \frac{2}{m\pi}$。</p>
+    </div>
+  </div>
+</details>
+
+<!-- ═══ Q3 ═══ -->
+<div class="card highlight-left orange" id="exam-q3">
+  <div class="card-label example">第 3 題（20%）─ 複數傅立葉級數</div>
+  <p><strong>題目：</strong>(a) 求 $f(t)=e^{|t|}$（$-1 < t < 1$）的複數傅立葉級數；(b) 轉換為實數三角形式。</p>
+</div>
+
+<details>
+  <summary>Q3 解答</summary>
+  <div class="inner">
+    <p><strong>(a) 複數傅立葉係數</strong></p>
+    <p>$L=1$，$\omega_0 = \pi$。注意 $e^{|t|}$ 為<strong>偶函數</strong>。</p>
+    $$d_n = \frac{1}{2}\int_{-1}^{1}e^{|t|}e^{-in\pi t}\,dt$$
+
+    <p>因 $e^{|t|}$ 為偶函數：</p>
+    $$d_n = \frac{1}{2}\int_{-1}^{1}e^{|t|}(\cos(n\pi t) - i\sin(n\pi t))\,dt = \frac{1}{2}\cdot 2\int_0^1 e^t\cos(n\pi t)\,dt$$
+    <p>（$\sin$ 項因奇×偶=奇而積分為零）</p>
+
+    $$d_n = \int_0^1 e^t\cos(n\pi t)\,dt = \frac{e(-1)^n - 1}{1+n^2\pi^2}$$
+
+    <p>$d_0 = \int_0^1 e^t\,dt = e - 1$</p>
+
+    <div class="eq-box">
+    $$\boxed{e^{|t|} \sim \sum_{n=-\infty}^{\infty}\frac{e(-1)^n - 1}{1+n^2\pi^2}\,e^{in\pi t}}$$
+    </div>
+
+    <p><strong>(b) 轉實數形式</strong></p>
+    <p>因 $d_n = d_{-n}$（實數且為偶函數），$b_n = 0$，$a_n = 2d_n$（$n \ge 1$），$a_0 = 2d_0$：</p>
+    $$a_0 = 2(e-1), \quad a_n = \frac{2(e(-1)^n-1)}{1+n^2\pi^2}$$
+    <div class="eq-box">
+    $$\boxed{e^{|t|} \sim (e-1) + \sum_{n=1}^{\infty}\frac{2(e(-1)^n-1)}{1+n^2\pi^2}\cos(n\pi t)}$$
+    </div>
+    <p>只有餘弦項（偶函數特性）。</p>
+  </div>
+</details>
+
+<!-- ═══ Q4 ═══ -->
+<div class="card highlight-left orange" id="exam-q4">
+  <div class="card-label example">第 4 題（20%）─ 逐項微分</div>
+  <p><strong>題目：</strong>$f(x) = |x|$ 在 $[-1,1]$。(a) 傅立葉展開；(b) 逐項微分得 $f'(x)$；(c) 直接展開 $f'(x)$ 驗證。</p>
+</div>
+
+<details>
+  <summary>Q4 解答</summary>
+  <div class="inner">
+    <p><strong>(a) $|x|$ 的傅立葉展開</strong></p>
+    <p>$|x|$ 為偶函數 → $b_n = 0$。$L = 1$。</p>
+    $$a_0 = 2\int_0^1 x\,dx = 1$$
+    $$a_n = 2\int_0^1 x\cos(n\pi x)\,dx = \frac{2((-1)^n - 1)}{n^2\pi^2}$$
+    <p>$n$ 為偶數時 $a_n = 0$；$n$ 為奇數時 $a_n = -\frac{4}{n^2\pi^2}$。</p>
+    <div class="eq-box">
+    $$|x| = \frac{1}{2} - \frac{4}{\pi^2}\sum_{m=0}^{\infty}\frac{1}{(2m+1)^2}\cos((2m+1)\pi x)$$
+    </div>
+
+    <p><strong>(b) 逐項微分合法性檢查</strong></p>
+    <p>定理 13.5 要求：$f$ 連續、$f(-L)=f(L)$、$f'$ 連續。</p>
+    <p>$|x|$ 在 $[-1,1]$ 連續 ✓，$f(-1)=f(1)=1$ ✓，但 $f'(x)$ 在 $x=0$ 不連續 ✗。</p>
+
+    <div class="card highlight-left pink" style="margin-top:8px;">
+      <div class="card-label note">陷阱！</div>
+      <p>嚴格來說定理 13.5 的條件不完全滿足（$f'$ 在 $x=0$ 不連續）。但實際上逐項微分後的級數仍然在 $f''$ 存在的點收斂至 $f'(x)$，即 $x \neq 0$ 處。</p>
+    </div>
+
+    <p>逐項微分：</p>
+    <div class="eq-box">
+    $$f'(x) = \frac{4}{\pi}\sum_{m=0}^{\infty}\frac{1}{2m+1}\sin((2m+1)\pi x)$$
+    </div>
+
+    <p><strong>(c) 直接展開 $f'(x)$ 驗證</strong></p>
+    <p>$f'(x) = \begin{cases}-1 & -1 < x < 0 \\ 1 & 0 < x < 1\end{cases}$ 為奇函數 → $a_n = 0$。</p>
+    $$b_n = 2\int_0^1 1\cdot\sin(n\pi x)\,dx = \frac{2(1-(-1)^n)}{n\pi}$$
+    <p>$n$ 偶 → $b_n = 0$；$n$ 奇 → $b_n = \frac{4}{n\pi}$。與 (b) 一致 ✓</p>
+  </div>
+</details>
+
+<!-- ═══ Q5 ═══ -->
+<div class="card highlight-left orange" id="exam-q5">
+  <div class="card-label example">第 5 題（20%）─ 收斂判斷與展開</div>
+  <p><strong>題目：</strong></p>
+  <div class="eq-box">$$f(x) = \begin{cases}|x| & -1\le x\le 1/2 \\ 2x & 1/2 < x\le 2/3 \\ 4x & 2/3 < x\le 1\end{cases}$$</div>
+  <p>(a) 求 $x = -1,\; 1/2,\; 2/3,\; 1$ 處的左右極限與左右導數。</p>
+  <p>(b) 傅立葉級數在這些點的收斂值。</p>
+  <p>(c) 傅立葉展開。</p>
+</div>
+
+<details>
+  <summary>Q5 解答</summary>
+  <div class="inner">
+    <p><strong>(a) 左右極限與左右導數</strong></p>
+
+    <p>在 $x = -1$：只有右極限 $f(-1^+) = |-1| = 1$。右導數：$|x|' = -1$（$x < 0$），故 $f'(-1^+) = -1$。</p>
+
+    <p>在 $x = 1/2$：</p>
+    <p>$f(1/2^-) = |1/2| = 1/2$，$f(1/2^+) = 2(1/2) = 1$ → <strong>跳躍不連續</strong></p>
+    <p>$f'(1/2^-) = 1$（$|x|$ 在 $x > 0$ 的導數），$f'(1/2^+) = 2$</p>
+
+    <p>在 $x = 2/3$：</p>
+    <p>$f(2/3^-) = 2(2/3) = 4/3$，$f(2/3^+) = 4(2/3) = 8/3$ → <strong>跳躍不連續</strong></p>
+    <p>$f'(2/3^-) = 2$，$f'(2/3^+) = 4$</p>
+
+    <p>在 $x = 1$：只有左極限 $f(1^-) = 4(1) = 4$。左導數：$f'(1^-) = 4$。</p>
+
+    <p><strong>(b) 傅立葉級數收斂值</strong>（定理 13.1）</p>
+
+    <p>$x = -1$ 和 $x = 1$（端點）：收斂至 $\dfrac{1}{2}(f(-1^+)+f(1^-)) = \dfrac{1}{2}(1+4) = \dfrac{5}{2}$</p>
+    <p>$x = 1/2$（跳躍處）：收斂至 $\dfrac{1}{2}(f(1/2^-)+f(1/2^+)) = \dfrac{1}{2}(1/2+1) = \dfrac{3}{4}$</p>
+    <p>$x = 2/3$（跳躍處）：收斂至 $\dfrac{1}{2}(f(2/3^-)+f(2/3^+)) = \dfrac{1}{2}(4/3+8/3) = 2$</p>
+
+    <p><strong>(c) 傅立葉係數</strong>（$L = 1$）</p>
+
+    $$a_n = \int_{-1}^{1}f(x)\cos(n\pi x)\,dx = \int_{-1}^{1/2}|x|\cos(n\pi x)\,dx + \int_{1/2}^{2/3}2x\cos(n\pi x)\,dx + \int_{1/2}^{1}4x\cos(n\pi x)\,dx$$
+
+    $$b_n = \int_{-1}^{1}f(x)\sin(n\pi x)\,dx = \int_{-1}^{1/2}|x|\sin(n\pi x)\,dx + \int_{1/2}^{2/3}2x\sin(n\pi x)\,dx + \int_{2/3}^{1}4x\sin(n\pi x)\,dx$$
+
+    <div class="card highlight-left pink" style="margin-top:8px;">
+      <div class="card-label note">考試策略</div>
+      <p>這題的積分計算量非常大。考試時 (a)(b) 各 5 分容易拿，(c) 的 10 分要用分部積分公式（考卷有提供）逐段算。注意 $|x|$ 在 $[-1, 0]$ 要拆成 $-x$，在 $[0, 1/2]$ 為 $x$。建議先寫出積分式拿分，再慢慢算。</p>
+    </div>
+  </div>
+</details>
+
+<div class="card highlight-left" style="margin-top:24px;">
+  <div class="card-label thm">考試重點總結</div>
+  <p><strong>必考題型：</strong></p>
+  <p>1. S-L 問題分類 + 特徵值求解（注意非標準形式要先轉換）</p>
+  <p>2. 特徵函數展開 / 傅立葉係數計算</p>
+  <p>3. 複數 ↔ 實數傅立葉級數轉換</p>
+  <p>4. 逐項微分/積分的合法性判斷（定理 13.4, 13.5 條件）</p>
+  <p>5. 分段函數的收斂值判斷（左右極限 → 定理 13.1）</p>
+  <p><strong>常見陷阱：</strong></p>
+  <p>• 非標準 S-L：要辨認 $r(x), p(x), q(x)$ 再化簡</p>
+  <p>• 偶/奇函數：可大幅簡化計算，別漏判</p>
+  <p>• 逐項微分：先檢查 $f$ 連續、$f(-L)=f(L)$、$f'$ 連續三個條件</p>
+  <p>• 端點收斂值：用 $\frac{1}{2}(f(-L^+)+f(L^-))$，不是 $f(-L)$ 和 $f(L)$</p>
+</div>
+
+</main>
+
+<button id="back-top" onclick="window.scrollTo({top:0})">↑</button>
+
+<script>
+// ─── Scroll spy ───
+const sections = document.querySelectorAll('h2[id], h3[id], div[id]');
+const navLinks = document.querySelectorAll('#nav a');
+
+function updateActive() {
+  let current = '';
+  sections.forEach(s => {
+    if (s.getBoundingClientRect().top <= 120) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+  document.getElementById('back-top').classList.toggle('show', window.scrollY > 400);
+}
+window.addEventListener('scroll', updateActive, { passive: true });
+
+// ─── Search ───
+const searchInput = document.getElementById('search-input');
+const mainEl = document.getElementById('main');
+
+searchInput.addEventListener('input', function() {
+  // Clear previous highlights
+  mainEl.querySelectorAll('.search-highlight').forEach(el => {
+    const parent = el.parentNode;
+    parent.replaceChild(document.createTextNode(el.textContent), el);
+    parent.normalize();
+  });
+
+  const q = this.value.trim();
+  const res = document.getElementById('search-results');
+  if (!q) { res.textContent = ''; return; }
+
+  let count = 0;
+  const walker = document.createTreeWalker(mainEl, NodeFilter.SHOW_TEXT);
+  const matches = [];
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (node.parentElement.closest('#search-bar, script, style')) continue;
+    const idx = node.textContent.toLowerCase().indexOf(q.toLowerCase());
+    if (idx !== -1) matches.push({ node, idx });
+  }
+
+  matches.forEach(({ node, idx }) => {
+    const span = document.createElement('span');
+    span.className = 'search-highlight';
+    const range = document.createRange();
+    range.setStart(node, idx);
+    range.setEnd(node, idx + q.length);
+    range.surroundContents(span);
+    count++;
+  });
+
+  res.textContent = count ? `找到 ${count} 處` : '無結果';
+  if (count) {
+    const first = mainEl.querySelector('.search-highlight');
+    if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+});
+
+// Close sidebar on mobile nav click
+navLinks.forEach(a => a.addEventListener('click', () => {
+  document.getElementById('sidebar').classList.remove('open');
+}));
+</script>
+
+</body>
+</html>
